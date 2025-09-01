@@ -78,9 +78,11 @@
         #new-map-button { display: none; width: 100%; margin-top: 15px; padding: 12px; font-size: 1em; font-weight: 700; font-family: 'Orbitron'; color: #000; background-color: var(--premium-glow); border: none; border-radius: 15px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 20px var(--premium-glow); }
         #new-map-button:hover { transform: scale(1.05); }
         
-        #shop-items button, .sell-prize-btn { padding: 10px; margin-bottom: 8px; background-color: var(--cell-bg); border: 1px solid var(--cell-border); color: var(--text-color); border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
-        .shop-item { position: relative; margin-bottom: 8px; }
+        #shop-items button, .sell-prize-btn { padding: 10px; margin-bottom: 8px; background-color: var(--cell-bg); border: 1px solid var(--cell-border); color: var(--text-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .shop-item { position: relative; margin-bottom: 12px; }
         .shop-item button { width: 100%; margin: 0; }
+        .shop-item p.item-desc { font-size: 0.8em; color: var(--cell-border); text-align: center; margin: 4px 0 0 0; }
+        .shop-item button:not(:disabled) { border-color: var(--premium-glow); box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
         .item-badge { position: absolute; top: -5px; right: -5px; background-color: var(--premium-glow); color: #000; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; font-weight: bold; font-size: 0.9em; box-shadow: 0 0 10px var(--premium-glow); }
         .sell-prize-btn { font-size: 0.8em; padding: 4px 8px; margin: 0; background-color: var(--premium-glow); color: #000; font-weight: bold; }
         #shop-items button:hover:not(:disabled), .sell-prize-btn:hover { background-color: rgba(142, 158, 171, 0.4); }
@@ -96,6 +98,7 @@
         .modal-buttons button { flex-grow: 1; padding: 12px; font-size: 1em; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; min-width: 150px; }
         .modal-buttons button:hover { transform: scale(1.05); }
         .btn-confirm { background-color: var(--premium-glow); color: #000; } .btn-cancel { background-color: var(--sunk-color); color: #fff; }
+        .modal-content input[type=number] { width: 80px; padding: 8px; text-align: center; background: var(--cell-bg); border: 1px solid var(--cell-border); color: white; border-radius: 8px; font-size: 1.2em; font-family: 'Orbitron'; }
 
         #grand-prize-ships { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 20px; perspective: 1000px; }
         .ship-choice { background: none; border: none; cursor: pointer; padding: 0; }
@@ -140,13 +143,16 @@
                     <p>A következő portya indul: <span id="waiting-time">00:00-kor</span></p>
                 </div>
                 <div id="rules-container">
-                    <h3>Játékszabályzat</h3>
+                    <h3>Játékszabályzat és Segítség</h3>
                     <ul>
                         <li><strong>Cél:</strong> Süllyeszd el az összes (7) ellenséges hajót a pályán.</li>
-                        <li><strong>Lőszer:</strong> 30 lövéssel kezdesz. Ha elfogy, vásárolhatsz vagy eladhatod a zsákmányod.</li>
+                        <li><strong>Lőszer:</strong> 30 lövéssel kezdesz. Ha elfogy, az Arzenálban vásárolhatsz darabonként 7 500 Ft-ért.</li>
                         <li><strong>Találati Lánc:</strong> Minden találatért +1 prémium lövést kapsz. Amíg van prémium lövésed, a rendszer azt használja. A prémium lövés csak akkor fogy el, ha mellélősz.</li>
                         <li><strong>Nyereménytárgyak:</strong> Minden új kör, amit a tárggyal a birtokodban kezdesz, <strong>25%-kal növeli annak értékét!</strong></li>
                         <li><strong>Fődíj Játék:</strong> A győztes kör végén válassz egyet a 10 hajó közül a végső jutalomért!</li>
+                        <hr style="border-color: var(--cell-border); margin: 10px 0;">
+                        <li><strong>Szónár Bevetése (200 000 Ft):</strong> Felfed egy 3x3-as területet a pályán, megmutatva, hogy van-e ott hajórészlet. Rendkívül hasznos a kereséshez.</li>
+                        <li><strong>Célzott Csapás (500 000 Ft):</strong> Lehetővé teszi egy már legalább egyszer eltalált, de még nem elsüllyedt hajó azonnali megsemmisítését.</li>
                     </ul>
                 </div>
             </div>
@@ -159,16 +165,22 @@
             </div>
             <div id="shop" class="side-box">
                 <h2>Arzenál</h2>
-                <div class="shop-item">
-                    <button id="use-sonar">Szónár Bevetése</button>
-                    <div class="item-badge" id="sonar-charges-badge">0</div>
+                <div id="shop-items">
+                    <div class="shop-item">
+                        <button id="use-sonar">Szónár Bevetése</button>
+                        <p class="item-desc">Felfed egy 3x3-as területet.</p>
+                        <div class="item-badge" id="sonar-charges-badge">0</div>
+                    </div>
+                    <div class="shop-item">
+                         <button id="use-strike">Célzott Csapás</button>
+                         <p class="item-desc">Azonnal elsüllyeszt egy sérült hajót.</p>
+                         <div class="item-badge" id="strike-charges-badge">0</div>
+                    </div>
+                    <hr style="border-color: var(--cell-border); margin: 15px 0;">
+                    <button id="buy-sonar">+1 Szónár (200 000 Ft)</button>
+                    <button id="buy-strike">+1 Csapás (500 000 Ft)</button>
+                    <button id="open-buy-shots-modal">Lőszer Vásárlása</button>
                 </div>
-                <div class="shop-item">
-                     <button id="use-strike">Célzott Csapás</button>
-                     <div class="item-badge" id="strike-charges-badge">0</div>
-                </div>
-                 <hr style="border-color: var(--cell-border); margin: 15px 0;">
-                <button id="buy-shots">+10 Lőszer (75 000 Ft)</button>
             </div>
             <div id="fleet-status" class="side-box">
                 <h2>Flotta</h2><ul id="fleet-list"></ul>
@@ -183,6 +195,7 @@
     <div id="grand-prize-modal" class="modal"><div class="modal-content"><h2>FŐDÍJ JÁTÉK!</h2><p>Válassz egyet a hadihajók közül a végső jutalomért! A szerencse a bátraknak kedvez...</p><div id="grand-prize-ships"></div><div id="grand-prize-result"></div><div class="modal-buttons" style="margin-top: 15px;"><button id="btn-close-grand-prize" class="btn-confirm" style="display:none;">Rendben</button></div></div></div>
     <div id="temptation-modal" class="modal"><div class="modal-content"><h2>EGY AJÁNLAT...</h2><p id="temptation-text"></p><div class="modal-buttons"><button id="btn-reject-offer" class="btn-cancel">NEM, MARADOK!</button><button id="btn-accept-offer" class="btn-confirm">IGEN, CSERÉLEK!</button></div></div></div>
     <div id="out-of-ammo-modal" class="modal"><div class="modal-content"><h2>VÉSZHELYZET A FEDÉLZETEN!</h2><p id="ammo-modal-text">Kapitány, kifogytunk a lőszerből! Mit tegyünk?</p><div class="modal-buttons"><button id="btn-ammo-buy" class="btn-confirm">Lőszer Vásárlása</button><button id="btn-ammo-sell" class="btn-confirm">Zsákmány Beváltása</button><button id="btn-ammo-end" class="btn-cancel">Harci Álláspont Elhagyása</button></div></div></div>
+    <div id="buy-ammo-modal" class="modal"><div class="modal-content"><h2>Lőszer Vásárlása</h2><p>Egy lövedék ára: 7 500 Ft.</p><div><label for="ammo-quantity" style="font-size: 1.2em; margin-right: 10px;">Mennyiség:</label><input type="number" id="ammo-quantity" min="1" value="1" step="1"></div><p style="margin-top: 20px; font-size: 1.3em;">Teljes költség: <strong id="ammo-total-cost">7 500 Ft</strong></p><div class="modal-buttons"><button id="btn-buy-ammo-confirm" class="btn-confirm">Vásárlás</button><button id="btn-buy-ammo-cancel" class="btn-cancel">Mégse</button></div></div></div>
     <div id="svg-definitions" style="display: none;"><svg id="miss-svg" viewBox="0 0 100 100"><path d="M 20 50 Q 50 20 80 50 M 30 60 Q 50 40 70 60" stroke="#FFF" stroke-width="8" fill="none" /></svg><svg id="hit-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#FFF" /><circle cx="50" cy="50" r="15" fill="var(--hit-color)" /></svg><svg id="prize-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M20.2,12.2C22.4,10.2 22,6.6 20,5C18.4,3.4 14.8,3 12.8,5.2L11.4,6.6L12.8,8L8,12.8L6.6,11.4L5.2,12.8C3,14.8 3.4,18.4 5,20C6.6,21.6 10.2,22 12.2,19.8L19.8,12.2M18,8.4L15.6,6L14.2,7.4L16.6,9.8L18,8.4M6,15.6L8.4,18L9.8,16.6L7.4,14.2L6,15.6M2,22L6,18L4,16L0,20V22H2M20,0H22V2L18,6L16,4L20,0M2,0H0V2L4,6L6,4L2,0Z"/></svg></div>
 
 <script>
@@ -190,13 +203,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Game Config ---
     const boardSize = 10;
     const MAP_REFRESH_INTERVAL = 5 * 60 * 1000;
-    const PRICES = { shots: 75000 };
+    const PRICES = { shot: 7500, sonar: 200000, strike: 500000 };
     const shipTypes = [ { name: "Hordozó", size: 5, id: 'carrier' }, { name: "Csatahajó", size: 4, id: 'battleship' }, { name: "Cirkáló", size: 3, id: 'cruiser' }, { name: "Tengeralattjáró", size: 3, id: 'submarine' }, { name: "Romboló", size: 2, id: 'destroyer' }, { name: "Aknaszedő", size: 2, id: 'minesweeper' }, { name: "Motorcsónak", size: 1, id: 'speedboat' } ];
     const prizeTypes = [ { name: "Gumicsirke", id: 'chicken', value: 15000 }, { name: "Lyukas Gumicsónak", id: 'boat', value: 25000 }, { name: "A Szomszéd Macskája", id: 'cat', value: 40000 }, { name: "Egy Csomag Ropi", id: 'ropi', value: 10000 } ];
 
     // --- DOM Elements ---
-    const gameBoardEl = document.getElementById('game-board'), messageEl = document.getElementById('message-container'), prizeModal = document.getElementById('prize-modal'), grandPrizeModal = document.getElementById('grand-prize-modal'), temptationModal = document.getElementById('temptation-modal'), outOfAmmoModal = document.getElementById('out-of-ammo-modal'), shotsEl = document.querySelector('#shots-stat p'), scoreEl = document.querySelector('#score-stat p'), premiumEl = document.querySelector('#premium-stat p'), premiumStatEl = document.getElementById('premium-stat'), shipsLeftEl = document.querySelector('#ships-left-stat p'), fleetListEl = document.getElementById('fleet-list'), prizeListEl = document.getElementById('prize-list'), newGameButton = document.getElementById('new-map-button'), currentTimeEl = document.getElementById('current-time'), waitingPanel = document.getElementById('waiting-panel'), waitingTimeEl = document.getElementById('waiting-time'), waitingScoreEl = document.getElementById('waiting-score'), buyShotsBtn = document.getElementById('buy-shots'), useSonarBtn = document.getElementById('use-sonar'), useStrikeBtn = document.getElementById('use-strike'), sonarChargesBadge = document.getElementById('sonar-charges-badge'), strikeChargesBadge = document.getElementById('strike-charges-badge');
-    
+    const gameBoardEl = document.getElementById('game-board'), messageEl = document.getElementById('message-container'), prizeModal = document.getElementById('prize-modal'), grandPrizeModal = document.getElementById('grand-prize-modal'), temptationModal = document.getElementById('temptation-modal'), outOfAmmoModal = document.getElementById('out-of-ammo-modal'), shotsEl = document.querySelector('#shots-stat p'), scoreEl = document.querySelector('#score-stat p'), premiumEl = document.querySelector('#premium-stat p'), premiumStatEl = document.getElementById('premium-stat'), shipsLeftEl = document.querySelector('#ships-left-stat p'), fleetListEl = document.getElementById('fleet-list'), prizeListEl = document.getElementById('prize-list'), newGameButton = document.getElementById('new-map-button'), currentTimeEl = document.getElementById('current-time'), waitingPanel = document.getElementById('waiting-panel'), waitingTimeEl = document.getElementById('waiting-time'), waitingScoreEl = document.getElementById('waiting-score'), openBuyShotsBtn = document.getElementById('open-buy-shots-modal'), buySonarBtn = document.getElementById('buy-sonar'), buyStrikeBtn = document.getElementById('buy-strike'), useSonarBtn = document.getElementById('use-sonar'), useStrikeBtn = document.getElementById('use-strike'), sonarChargesBadge = document.getElementById('sonar-charges-badge'), strikeChargesBadge = document.getElementById('strike-charges-badge');
+    const buyAmmoModal = document.getElementById('buy-ammo-modal'), ammoQuantityInput = document.getElementById('ammo-quantity'), ammoTotalCostEl = document.getElementById('ammo-total-cost'), buyAmmoConfirmBtn = document.getElementById('btn-buy-ammo-confirm');
+
     // --- Icons ---
     const icons = { miss: document.getElementById('miss-svg'), hit: document.getElementById('hit-svg'), prize: document.getElementById('prize-svg') };
     
@@ -285,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function endGameNoAmmo() { gameOver = true; totalMoney += roundMoney; roundMoney = 0; displayMessage("VÉGE A JÁTÉKNAK!", 5000); updateStats(); saveState(); setTimeout(showWaitingScreen, 3000); }
 
     function showOutOfAmmoModal() {
-        const canBuy = (totalMoney + roundMoney) >= PRICES.shots;
+        const canBuy = (totalMoney + roundMoney) >= PRICES.shot;
         const canSell = playerInventory.length > 0;
         document.getElementById('btn-ammo-buy').style.display = canBuy ? 'block' : 'none';
         document.getElementById('btn-ammo-sell').style.display = canSell ? 'block' : 'none';
@@ -293,8 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else { document.getElementById('ammo-modal-text').textContent = "Kapitány, kifogytunk a lőszerből! Mit tegyünk?"; }
         outOfAmmoModal.classList.add('visible');
     }
-
-    document.getElementById('btn-ammo-buy').addEventListener('click', () => outOfAmmoModal.classList.remove('visible'));
+    document.getElementById('btn-ammo-buy').addEventListener('click', () => { outOfAmmoModal.classList.remove('visible'); buyAmmoModal.classList.add('visible'); updateAmmoCost(); });
     document.getElementById('btn-ammo-sell').addEventListener('click', () => outOfAmmoModal.classList.remove('visible'));
     document.getElementById('btn-ammo-end').addEventListener('click', () => { outOfAmmoModal.classList.remove('visible'); endGameNoAmmo(); });
 
@@ -340,14 +353,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- UI and Stats ---
-    function updateStats() { const shipsRemaining = ships ? ships.filter(s => !s.sunk).length : 0, shipsTotal = ships ? ships.length : 7; const currentMoney = totalMoney + roundMoney; shotsEl.textContent = shots; scoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; premiumEl.textContent = premiumShots; shipsLeftEl.textContent = `${shipsRemaining}/${shipsTotal}`; premiumStatEl.classList.toggle('active', premiumShots > 0 && !gameOver); buyShotsBtn.disabled = currentMoney < PRICES.shots; sonarChargesBadge.textContent = playerSonarCharges; strikeChargesBadge.textContent = playerStrikeCharges; useSonarBtn.disabled = playerSonarCharges <= 0; useStrikeBtn.disabled = playerStrikeCharges <= 0; waitingScoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; }
+    function updateStats() { const shipsRemaining = ships ? ships.filter(s => !s.sunk).length : 0, shipsTotal = ships ? ships.length : 7; const currentMoney = totalMoney + roundMoney; shotsEl.textContent = shots; scoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; premiumEl.textContent = premiumShots; shipsLeftEl.textContent = `${shipsRemaining}/${shipsTotal}`; premiumStatEl.classList.toggle('active', premiumShots > 0 && !gameOver); buySonarBtn.disabled = currentMoney < PRICES.sonar; buyStrikeBtn.disabled = currentMoney < PRICES.strike; openBuyShotsBtn.disabled = currentMoney < PRICES.shot; sonarChargesBadge.textContent = playerSonarCharges; strikeChargesBadge.textContent = playerStrikeCharges; useSonarBtn.disabled = playerSonarCharges <= 0; useStrikeBtn.disabled = playerStrikeCharges <= 0; waitingScoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; }
     function displayMessage(text, duration = 2000, callback) { messageEl.textContent = text; setTimeout(() => { if (messageEl.textContent === text) { messageEl.textContent = ''; } if (callback) callback(); }, duration); }
     
     // --- Shop and Arsenal ---
     function purchase(cost, callback) { if (totalMoney + roundMoney >= cost) { let rem = cost; if (roundMoney > 0) { const fromRound = Math.min(roundMoney, rem); roundMoney -= fromRound; rem -= fromRound; } if (rem > 0) { totalMoney -= rem; } callback(); updateStats(); saveState(); } else { displayMessage("Nincs elég pénzed!", 2000); } }
-    buyShotsBtn.addEventListener('click', () => purchase(PRICES.shots, () => { shots += 10; displayMessage("+10 Lőszer vásárolva!", 2000); }));
-    useSonarBtn.addEventListener('click', () => { if(playerSonarCharges > 0) { playerSonarCharges--; displayMessage("SZÓNÁR BEVETVE!", 4000); updateStats(); saveState(); } });
-    useStrikeBtn.addEventListener('click', () => { if(playerStrikeCharges > 0) { playerStrikeCharges--; displayMessage("CÉLZOTT CSAPÁS!", 2000); updateStats(); saveState(); } });
+    
+    // --- New Ammo Purchase Logic ---
+    function updateAmmoCost() {
+        const quantity = parseInt(ammoQuantityInput.value) || 0;
+        if (quantity < 1) { ammoQuantityInput.value = 1; return; }
+        const totalCost = quantity * PRICES.shot;
+        ammoTotalCostEl.textContent = `${totalCost.toLocaleString()} Ft`;
+        const currentMoney = totalMoney + roundMoney;
+        buyAmmoConfirmBtn.disabled = totalCost > currentMoney;
+    }
+    
+    ammoQuantityInput.addEventListener('input', updateAmmoCost);
+    openBuyShotsBtn.addEventListener('click', () => { buyAmmoModal.classList.add('visible'); updateAmmoCost(); });
+    document.getElementById('btn-buy-ammo-cancel').addEventListener('click', () => buyAmmoModal.classList.remove('visible'));
+    buyAmmoConfirmBtn.addEventListener('click', () => {
+        const quantity = parseInt(ammoQuantityInput.value);
+        const totalCost = quantity * PRICES.shot;
+        purchase(totalCost, () => {
+            shots += quantity;
+            displayMessage(`+${quantity} Lőszer vásárolva!`, 2000);
+            buyAmmoModal.classList.remove('visible');
+        });
+    });
+
+    // --- Other Arsenal Items ---
+    buySonarBtn.addEventListener('click', () => purchase(PRICES.sonar, () => { playerSonarCharges++; displayMessage("+1 Szónár vásárolva!", 2000); }));
+    buyStrikeBtn.addEventListener('click', () => purchase(PRICES.strike, () => { playerStrikeCharges++; displayMessage("+1 Célzott Csapás vásárolva!", 2000); }));
+    useSonarBtn.addEventListener('click', () => { if(playerSonarCharges > 0) { playerSonarCharges--; displayMessage("SZÓNÁR BEVETVE!", 4000); updateStats(); saveState(); } }); // Note: Actual effect not implemented
+    useStrikeBtn.addEventListener('click', () => { if(playerStrikeCharges > 0) { playerStrikeCharges--; displayMessage("CÉLZOTT CSAPÁS!", 2000); updateStats(); saveState(); } }); // Note: Actual effect not implemented
+
 
     // --- Time Management ---
     function tick() {
@@ -379,4 +419,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>```
+
+</html>
