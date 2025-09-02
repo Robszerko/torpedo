@@ -47,19 +47,25 @@
         #premium-stat.active p { color: var(--premium-glow); animation: pulse 1.5s infinite; }
 
         #player-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-        .player-info { font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; }
+        .player-info { font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; cursor: pointer; padding: 5px 10px; border: 2px solid transparent; border-radius: 10px; }
         .player-info.active { color: var(--premium-glow); transform: scale(1.1); text-shadow: 0 0 8px var(--premium-glow); }
+        .player-info.locked { border-color: var(--premium-glow); box-shadow: 0 0 10px var(--premium-glow); }
+        .lock-icon { margin-left: 5px; }
         #rename-players-btn { background-color: var(--cell-bg); border: 1px solid var(--cell-border); color: var(--text-color); padding: 8px 15px; border-radius: 10px; cursor: pointer; font-family: 'Poppins'; font-weight: 600; transition: all 0.2s; }
         #rename-players-btn:hover { background-color: rgba(142, 158, 171, 0.4); }
 
         #board-wrapper { position: relative; }
+        .board-locked #game-board td:not(.shot) { cursor: not-allowed !important; }
+        .board-locked #game-board td:not(.shot):hover { background-color: transparent; transform: none; }
+        
         #board-message-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            font-family: 'Orbitron', sans-serif; font-size: clamp(2rem, 10vw, 3.5rem);
+            font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 8vw, 3rem);
             color: var(--premium-glow); text-shadow: 0 0 10px #000, 0 0 20px var(--premium-glow);
             pointer-events: none; opacity: 0; z-index: 10;
             text-align: center; text-transform: uppercase;
+            line-height: 1.2;
         }
 
         #game-board { border-collapse: separate; border-spacing: 4px; margin: 0 auto; }
@@ -77,6 +83,7 @@
         #waiting-title { font-family: 'Orbitron'; font-size: 2em; color: var(--premium-glow); margin-bottom: 10px; }
         #waiting-info { font-family: 'Poppins'; font-size: 1.2em; margin: 15px 0; color: white; }
         #waiting-time, #waiting-score, #live-time-waiting { font-family: 'Orbitron'; font-size: 1.5em; color: var(--premium-glow); }
+        #waiting-player-scores { margin-top: 15px; font-size: 1.1em; line-height: 1.5; }
         #rules-container { text-align: left; font-size: 0.9em; padding: 15px; border-top: 1px solid var(--cell-border); margin-top: 15px; }
         #rules-container h3 { color: var(--premium-glow); border-bottom: 1px solid var(--premium-glow); padding-bottom: 5px; margin-top: 0; }
         #rules-container ul { padding-left: 20px; margin: 10px 0 0 0; }
@@ -124,7 +131,7 @@
         .ship-choice.is-flipped .flipper { transform: rotateY(180deg); }
         .front, .back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: 15px; border: 2px solid var(--cell-border); }
         .front { background: rgba(0,0,0,0.3); }
-        .back { transform: rotateY(180deg); font-family: 'Orbitron'; font-size: 1.5em; padding: 5px; line-height: 1.2; text-align: center; }
+        .back { transform: rotateY(180deg); font-family: 'Orbitron'; font-size: 1.3em; padding: 5px; line-height: 1.2; text-align: center; }
         .back.bankrupt { background: #4d0000; text-shadow: 0 0 10px #000; font-size: 1.2em; }
         .back.sunk { background: #8B0000; text-shadow: 0 0 10px #000; }
         .back.safe { background: #003366; text-shadow: 0 0 10px #fff; }
@@ -141,7 +148,15 @@
         @keyframes hit-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         @keyframes sink-animation { 0% { background-color: var(--hit-color); transform: scale(1.1); border-color: white; } 50% { background-color: var(--hit-color); transform: scale(0.8); opacity: 0.8; } 100% { background-color: var(--sunk-color); transform: scale(1); opacity: 0.6; border-color: var(--sunk-color); } }
         @keyframes fade-in-out-zoom { 0% { transform: scale(0.8); opacity: 0; } 15% { transform: scale(1.1); opacity: 1; } 85% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0; } }
-
+        
+        @media (min-width: 901px) {
+            #main-panel > #prize-corner {
+                max-width: 480px; /* Aligns with the game board width (10*40px + 9*4px + borders) approx */
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 0;
+            }
+        }
         @media (max-width: 900px) {
             body { padding: 10px; }
             #game-container {
@@ -173,7 +188,7 @@
         <div id="main-panel">
             <div id="game-header"><h1>Globális Torpedó</h1></div>
             <div id="stats-panel">
-                <div id="shots-stat" class="stat"><h3>Lőszer</h3><p>30</p></div>
+                <div id="shots-stat" class="stat"><h3>Lőszer</h3><p>60</p></div>
                 <div id="score-stat" class="stat"><h3>Kassza</h3><p>0 Ft</p></div>
                 <div id="premium-stat" class="stat"><h3>Prémium</h3><p>0</p></div>
                 <div id="ships-left-stat" class="stat"><h3>Hajók</h3><p>7</p></div>
@@ -197,15 +212,20 @@
                     <p>Aktuális vagyon: <span id="waiting-score">0 Ft</span></p>
                     <p>A következő portya indul: <span id="waiting-time">00:00-kor</span></p>
                 </div>
+                <div id="waiting-player-scores">
+                    <h3>Előző kör pontjai</h3>
+                    <span id="waiting-player1-score"></span><br>
+                    <span id="waiting-player2-score"></span>
+                </div>
                 <div id="rules-container">
                     <h3>Játékszabályzat és Segítség</h3>
                     <ul>
                         <li><strong>Cél:</strong> Süllyeszd el az összes (7) ellenséges hajót a pályán.</li>
-                        <li><strong>Pontozás:</strong> Minden elsüllyesztett hajó 1 pontot ér.</li>
+                        <li><strong>Pontozás:</strong> Minden elsüllyesztett hajó **1 pontot** ér, plusz **további annyi pontot, ahány egységből állt** a hajó (pl. egy 4-es hajó 1+4=5 pontot ér).</li>
                         <li><strong>Játékmenet:</strong> Találat után a játékos újra lőhet. Ha nem talál, a másik játékos következik.</li>
-                        <li><strong>Lőszer:</strong> 30 lövéssel kezdesz. Ha elfogy, az Arzenálban vásárolhatsz.</li>
+                        <li><strong>Lőszer:</strong> 60 lövéssel kezdesz. Ha elfogy, az Arzenálban vásárolhatsz.</li>
                         <li><strong>Találati Lánc:</strong> Minden találatért +1 prémium lövést kapsz. A prémium lövés csak akkor fogy el, ha mellélősz.</li>
-                        <li><strong>Nyereménytárgyak:</strong> Minden új kör, amit a tárggyal a birtokodban kezdesz, <strong>25%-kal növeli annak értékét!</strong></li>
+                        <li><strong>Nyereménytárgyak:</strong> Körönként 5 véletlenszerű zsákmány van a pályán. Megtarthatod őket, hogy az értékük minden új körrel <strong>25%-kal nőjön!</strong></li>
                         <li><strong>Fődíj Játék:</strong> A győztes kör végén válassz egyet a 10 hajó közül a végső jutalomért!</li>
                     </ul>
                 </div>
@@ -245,19 +265,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const PRICES = { shot: 7500, sonar: 200000, strike: 500000 };
     
     const shipTypes = [ { name: "Hordozó", id: 'carrier', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2}] }, { name: "Csatahajó", id: 'battleship', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2}] }, { name: "Cirkáló", id: 'cruiser', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0}] }, { name: "Tengeralattjáró", id: 'submarine', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1}] }, { name: "Romboló", id: 'destroyer', shape: [{r:0,c:0},{r:0,c:1}] }, { name: "Aknaszedő", id: 'minesweeper', shape: [{r:0,c:0},{r:1,c:1}] }, { name: "Motorcsónak", id: 'speedboat', shape: [{r:0,c:0}] } ];
-    const prizeTypes = [ { name: "Gumicsirke", id: 'chicken', value: 15000 }, { name: "Lyukas Gumicsónak", id: 'boat', value: 25000 }, { name: "A Szomszéd Macskája", id: 'cat', value: 40000 }, { name: "Egy Csomag Ropi", id: 'ropi', value: 10000 } ];
+    
+    const ALL_PRIZE_TYPES = [
+        { name: "Rozsdás periszkóp", id: 'periscope', value: 8000 }, { name: "Fél pár gumicsizma", id: 'boot', value: 5000 },
+        { name: "Üzenet a palackban (spam)", id: 'spam_bottle', value: 2000 }, { name: "Kalózkapitány műfoga", id: 'pirate_tooth', value: 22000 },
+        { name: "Ázott hajónapló", id: 'logbook', value: 12000 }, { name: "Konzerv sózott hering", id: 'herring', value: 7500 },
+        { name: "Díszes horgony", id: 'anchor', value: 45000 }, { name: "Tengeri csillag", id: 'starfish', value: 9000 },
+        { name: "Lyukas mentőmellény", id: 'life_vest', value: 6000 }, { name: "Cápa-riasztó spray (lejárt)", id: 'shark_spray', value: 18000 },
+        { name: "A Titanic zenekarának kottája", id: 'titanic_music', value: 60000 }, { name: "Sellő fésűje", id: 'mermaid_comb', value: 35000 },
+        { name: "Elveszett szemfedő", id: 'eyepatch', value: 11000 }, { name: "Kísérteties iránytű", id: 'ghost_compass', value: 28000 },
+        { name: "Csillogó kagyló", id: 'shiny_shell', value: 13000 }, { name: "Bambusz horgászbot", id: 'bamboo_rod', value: 10000 },
+        { name: "Polip által dedikált fotó", id: 'octopus_photo', value: 32000 }, { name: "Világítótorony villanykörtéje", id: 'lighthouse_bulb', value: 25000 },
+        { name: "Davy Jones ládájának kulcsa", id: 'davy_jones_key', value: 100000 }, { name: "Aranyozott kormánykerék", id: 'gold_wheel', value: 75000 },
+        { name: "Kapitányi sapka", id: 'captain_hat', value: 15000 }, { name: "Antik térkép", id: 'old_map', value: 40000 },
+        { name: "Mélytengeri halászháló", id: 'fishing_net', value: 14000 }, { name: "Hajókürt", id: 'ship_horn', value: 19000 },
+        { name: "Gumikacsa flotta", id: 'rubber_ducks', value: 21000 }, { name: "Víz alatti drón roncsa", id: 'drone_wreck', value: 55000 },
+        { name: "Elveszett rakomány (gumicsirkék)", id: 'rubber_chicken_cargo', value: 33000 }, { name: "Tengerészgyalogos matrica", id: 'marine_sticker', value: 4000 },
+        { name: "Üres rumos hordó", id: 'rum_barrel', value: 9500 }, { name: "Bálna éneke CD-n", id: 'whale_song_cd', value: 16000 },
+        { name: "Vízálló kártyapakli", id: 'waterproof_cards', value: 12500 }, { name: "Zátonyra futott drón", id: 'crashed_drone', value: 29000 },
+        { name: "Dekoratív hajócsavar", id: 'propeller', value: 38000 }, { name: "Kincsesláda (üres)", id: 'empty_chest', value: 17000 },
+        { name: "Szuper-sós ropi", id: 'salty_pretzels', value: 5500 }, { name: "Tengeri uborka", id: 'sea_cucumber', value: 8500 },
+        { name: "Viking sisak másolat", id: 'viking_helmet', value: 23000 }, { name: "Kagylókból készült nyaklánc", id: 'shell_necklace', value: 13500 },
+        { name: "Nagyító", id: 'magnifying_glass', value: 7000 }, { name: "Sextáns", id: 'sextant', value: 48000 }
+    ];
 
     // --- DOM Elements ---
-    const gameBoardEl = document.getElementById('game-board'), boardMessageOverlayEl = document.getElementById('board-message-overlay'), prizeModal = document.getElementById('prize-modal'), grandPrizeModal = document.getElementById('grand-prize-modal'), temptationModal = document.getElementById('temptation-modal'), outOfAmmoModal = document.getElementById('out-of-ammo-modal'), shotsEl = document.querySelector('#shots-stat p'), scoreEl = document.querySelector('#score-stat p'), premiumEl = document.querySelector('#premium-stat p'), premiumStatEl = document.getElementById('premium-stat'), shipsLeftEl = document.querySelector('#ships-left-stat p'), fleetListEl = document.getElementById('fleet-list'), prizeListEl = document.getElementById('prize-list'), newGameButton = document.getElementById('new-map-button'), waitingPanel = document.getElementById('waiting-panel'), waitingTimeEl = document.getElementById('waiting-time'), waitingScoreEl = document.getElementById('waiting-score'), liveTimeWaitingEl = document.getElementById('live-time-waiting'), openBuyShotsBtn = document.getElementById('open-buy-shots-modal'), buySonarBtn = document.getElementById('buy-sonar'), buyStrikeBtn = document.getElementById('buy-strike'), useSonarBtn = document.getElementById('use-sonar'), useStrikeBtn = document.getElementById('use-strike'), sonarChargesBadge = document.getElementById('sonar-charges-badge'), strikeChargesBadge = document.getElementById('strike-charges-badge'), renamePlayersBtn = document.getElementById('rename-players-btn'), player1InfoEl = document.getElementById('player1-info'), player2InfoEl = document.getElementById('player2-info');
+    const gameBoardEl = document.getElementById('game-board'), boardWrapperEl = document.getElementById('board-wrapper'), boardMessageOverlayEl = document.getElementById('board-message-overlay'), prizeModal = document.getElementById('prize-modal'), grandPrizeModal = document.getElementById('grand-prize-modal'), temptationModal = document.getElementById('temptation-modal'), outOfAmmoModal = document.getElementById('out-of-ammo-modal'), shotsEl = document.querySelector('#shots-stat p'), scoreEl = document.querySelector('#score-stat p'), premiumEl = document.querySelector('#premium-stat p'), premiumStatEl = document.getElementById('premium-stat'), shipsLeftEl = document.querySelector('#ships-left-stat p'), fleetListEl = document.getElementById('fleet-list'), prizeListEl = document.getElementById('prize-list'), newGameButton = document.getElementById('new-map-button'), waitingPanel = document.getElementById('waiting-panel'), waitingTimeEl = document.getElementById('waiting-time'), waitingScoreEl = document.getElementById('waiting-score'), liveTimeWaitingEl = document.getElementById('live-time-waiting'), waitingPlayer1ScoreEl = document.getElementById('waiting-player1-score'), waitingPlayer2ScoreEl = document.getElementById('waiting-player2-score'), openBuyShotsBtn = document.getElementById('open-buy-shots-modal'), buySonarBtn = document.getElementById('buy-sonar'), buyStrikeBtn = document.getElementById('buy-strike'), useSonarBtn = document.getElementById('use-sonar'), useStrikeBtn = document.getElementById('use-strike'), sonarChargesBadge = document.getElementById('sonar-charges-badge'), strikeChargesBadge = document.getElementById('strike-charges-badge'), renamePlayersBtn = document.getElementById('rename-players-btn'), player1InfoEl = document.getElementById('player1-info'), player2InfoEl = document.getElementById('player2-info');
     const buyAmmoModal = document.getElementById('buy-ammo-modal'), ammoQuantityInput = document.getElementById('ammo-quantity'), ammoTotalCostEl = document.getElementById('ammo-total-cost'), buyAmmoConfirmBtn = document.getElementById('btn-buy-ammo-confirm'), ammoDecrementBtn = document.getElementById('ammo-decrement-btn'), ammoIncrementBtn = document.getElementById('ammo-increment-btn');
+    const btnAmmoBuy = document.getElementById('btn-ammo-buy'), btnAmmoSell = document.getElementById('btn-ammo-sell'), btnAmmoEnd = document.getElementById('btn-ammo-end');
     
     // --- Icons ---
     const icons = { miss: document.getElementById('miss-svg'), hit: document.getElementById('hit-svg'), prize: document.getElementById('prize-svg') };
     
     // --- Game State ---
-    let boardState, ships, boardPrizes, shots, roundMoney, premiumShots, gameOver, currentMapSeed, seededRandom;
+    let boardState, ships, currentRoundPrizes, shots, roundMoney, premiumShots, gameOver, currentMapSeed, seededRandom;
     let totalMoney = 0, playerInventory = [], gameInProgress = false, playerSonarCharges = 0, playerStrikeCharges = 0, messageTimeout;
-    let currentPlayer = 1, player1Name = "Játékos 1", player2Name = "Játékos 2", player1Score = 0, player2Score = 0;
+    let currentPlayer = 1, player1Name = "Játékos 1", player2Name = "Játékos 2", player1Score = 0, player2Score = 0, lockedPlayer = 0;
 
     // --- Core Functions ---
     const mulberry32 = (a) => () => { let t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -272,18 +315,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const savedState = JSON.parse(localStorage.getItem('globalTorpedoSave'));
         if (savedState && savedState.lastMapSeed === currentMapSeed) { showWaitingScreen(); return; }
         seededRandom = mulberry32(currentMapSeed);
-        shots = 30; roundMoney = 0; premiumShots = 0; gameOver = false; gameInProgress = true;
-        currentPlayer = 1; player1Score = 0; player2Score = 0;
+        shots = 60; roundMoney = 0; premiumShots = 0; gameOver = false; gameInProgress = true;
+        currentPlayer = 1; player1Score = 0; player2Score = 0; lockedPlayer = 0;
         updatePlayerUI();
         boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null).map(() => ({ shipId: null, prizeId: null, state: 'empty' })));
         displayMessage("Kezdődjön a csata!", 3000);
         newGameButton.style.display = 'none'; waitingPanel.style.display = 'none'; gameBoardEl.style.display = 'table'; document.getElementById('stats-panel').style.display = 'flex'; document.getElementById('player-controls').style.display = 'flex';
-        placeShips(); placePrizes(); renderBoard(); renderFleetStatus(); renderPrizeList(); updateStats();
+        const shuffledPrizes = [...ALL_PRIZE_TYPES].sort(() => 0.5 - seededRandom());
+        currentRoundPrizes = shuffledPrizes.slice(0, 5);
+        placeShips(); 
+        placePrizes(); 
+        renderBoard(); 
+        renderFleetStatus(); 
+        renderPrizeList(); 
+        updateStats();
         handleLayout();
     }
     
     function showWaitingScreen() {
         gameInProgress = false;
+        waitingPlayer1ScoreEl.textContent = `${player1Name}: ${player1Score} pont`;
+        waitingPlayer2ScoreEl.textContent = `${player2Name}: ${player2Score} pont`;
         gameBoardEl.style.display = 'none'; document.getElementById('stats-panel').style.display = 'none'; document.getElementById('player-controls').style.display = 'none';
         newGameButton.style.display = 'none'; waitingPanel.style.display = 'block';
         updateStats(); handleLayout();
@@ -294,7 +346,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function getShapeTransformations(shape) { const transformations = new Set(); let currentShape = shape; for (let i = 0; i < 4; i++) { currentShape = normalizeShape(currentShape.map(p => ({ r: -p.c, c: p.r }))); transformations.add(JSON.stringify(currentShape.sort((a,b) => a.r - b.r || a.c - b.c))); } currentShape = normalizeShape(shape.map(p => ({ r: p.r, c: -p.c }))); for (let i = 0; i < 4; i++) { currentShape = normalizeShape(currentShape.map(p => ({ r: -p.c, c: p.r }))); transformations.add(JSON.stringify(currentShape.sort((a,b) => a.r - b.r || a.c - b.c))); } return Array.from(transformations, s => JSON.parse(s)); }
     function placeShips() { ships = []; shipTypes.forEach(shipType => { const allOrientations = getShapeTransformations(shipType.shape); let placed = false; while (!placed) { const orientation = allOrientations[Math.floor(seededRandom() * allOrientations.length)]; const shapeWidth = Math.max(...orientation.map(p => p.c)) + 1; const shapeHeight = Math.max(...orientation.map(p => p.r)) + 1; const sr = Math.floor(seededRandom() * (boardSize - shapeHeight + 1)); const sc = Math.floor(seededRandom() * (boardSize - shapeWidth + 1)); if (isValidPlacement(orientation, sr, sc)) { const coords = []; orientation.forEach(part => { const r = sr + part.r; const c = sc + part.c; boardState[r][c].shipId = shipType.id; coords.push({ row: r, col: c }); }); ships.push({ ...shipType, size: shipType.shape.length, coords, hits: 0, sunk: false, sunkBy: null }); placed = true; } } }); }
     function isValidPlacement(shape, startRow, startCol) { for (const part of shape) { const r = startRow + part.r; const c = startCol + part.c; if (r < 0 || r >= boardSize || c < 0 || c >= boardSize) return false; for (let dr = -1; dr <= 1; dr++) { for (let dc = -1; dc <= 1; dc++) { const checkR = r + dr; const checkC = c + dc; if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize) { if (boardState[checkR][checkC].shipId !== null) { return false; } } } } } return true; }
-    function placePrizes() { boardPrizes = []; prizeTypes.forEach(prize => { let placed = false; while (!placed) { const r = Math.floor(seededRandom() * boardSize); const c = Math.floor(seededRandom() * boardSize); let valid = true; for (let dr = -1; dr <= 1; dr++) { for (let dc = -1; dc <= 1; dc++) { const checkR = r + dr; const checkC = c + dc; if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize) { if(boardState[checkR][checkC].shipId !== null || boardState[checkR][checkC].prizeId !== null) { valid = false; break; } } } if(!valid) break; } if (valid) { boardState[r][c].prizeId = prize.id; boardPrizes.push({ ...prize }); placed = true; } } }); }
+    function placePrizes() { 
+        currentRoundPrizes.forEach(prize => {
+            let placed = false;
+            while (!placed) {
+                const r = Math.floor(seededRandom() * boardSize);
+                const c = Math.floor(seededRandom() * boardSize);
+                let valid = true;
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        const checkR = r + dr;
+                        const checkC = c + dc;
+                        if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize) {
+                            if(boardState[checkR][checkC].shipId !== null || boardState[checkR][checkC].prizeId !== null) {
+                                valid = false; break;
+                            }
+                        }
+                    }
+                    if(!valid) break;
+                }
+                if (valid) {
+                    boardState[r][c].prizeId = prize.id;
+                    placed = true;
+                }
+            }
+        });
+    }
     
     // --- Rendering ---
     function renderBoard() { gameBoardEl.innerHTML = `<tr><th></th>${Array.from({length:10}, (_,i)=>`<th>${String.fromCharCode(65+i)}</th>`).join('')}</tr>`; for (let i = 0; i < boardSize; i++) { const rowEl = gameBoardEl.insertRow(); rowEl.innerHTML = `<th>${i + 1}</th>`; for (let j = 0; j < boardSize; j++) { const cellEl = rowEl.insertCell(); cellEl.dataset.row = i; cellEl.dataset.col = j; cellEl.addEventListener('click', handleCellClick); } } }
@@ -302,26 +379,56 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderPrizeList() { prizeListEl.innerHTML = playerInventory.length ? playerInventory.map(p => { const currentValue = Math.floor(p.value * (1 + 0.25 * (p.heldRounds || 0))); return `<li><span>${p.name}</span><button class="sell-prize-btn" data-prize-id="${p.id}">Eladom (${currentValue.toLocaleString()} Ft)</button></li>`}).join('') : '<li>Még nincs zsákmányod</li>'; document.querySelectorAll('.sell-prize-btn').forEach(btn => btn.addEventListener('click', handleSellPrize)); }
 
     // --- Gameplay Handlers ---
-    function handleSellPrize(e) { /* ... same as before ... */ }
-    function handleCellClick(e) { if (gameOver || !gameInProgress) return; const targetCell = e.target.closest('td'); if (!targetCell) return; const row = parseInt(targetCell.dataset.row), col = parseInt(targetCell.dataset.col); const cellState = boardState[row][col]; if (cellState.state !== 'empty') return; if(shots <= 0 && premiumShots <= 0) { showOutOfAmmoModal(); return; } const isPremiumShot = premiumShots > 0; targetCell.classList.add('shot'); if (cellState.shipId) { if (!isPremiumShot) { shots--; } handleHit(targetCell, isPremiumShot); } else { if (isPremiumShot) { premiumShots--; } else { shots--; } if (cellState.prizeId) { handlePrize(targetCell); } else { handleMiss(targetCell); } } updateStats(); checkGameOver(); }
-    function handleHit(cellEl, wasPremium) { const row = cellEl.dataset.row, col = cellEl.dataset.col; boardState[row][col].state = 'hit'; cellEl.classList.add('hit'); const icon = icons.hit.cloneNode(true); icon.classList.add('icon'); cellEl.appendChild(icon); roundMoney += wasPremium ? 2500 : 500; premiumShots += 1; displayMessage(`TALÁLAT!`, 1500, () => displayMessage("PRÉMIUM LÖVÉS!", 1500)); const hitShip = ships.find(ship => ship.id === boardState[row][col].shipId); hitShip.hits++; if (hitShip.hits === hitShip.size) handleSunkShip(hitShip); }
-    function handlePrize(cellEl) { cellEl.classList.add('prize'); const icon = icons.prize.cloneNode(true); icon.classList.add('icon'); cellEl.appendChild(icon); const prize = prizeTypes.find(p => p.id === boardState[cellEl.dataset.row][cellEl.dataset.col].prizeId); showPrizeModal(prize); switchPlayer(); }
+    function handleSellPrize(e) { const prizeId = e.target.dataset.prizeId; const prizeIndex = playerInventory.findIndex(p => p.id === prizeId); if (prizeIndex > -1) { const soldPrize = playerInventory.splice(prizeIndex, 1)[0]; const currentValue = Math.floor(soldPrize.value * (1 + 0.25 * (soldPrize.heldRounds || 0))); totalMoney += currentValue; displayMessage(`${soldPrize.name} eladva!`, 2000); renderPrizeList(); updateStats(); saveState(); } }
+    function handleCellClick(e) { if (gameOver || !gameInProgress) return; if (lockedPlayer !== 0 && lockedPlayer !== currentPlayer) return; const targetCell = e.target.closest('td'); if (!targetCell) return; const row = parseInt(targetCell.dataset.row), col = parseInt(targetCell.dataset.col); const cellState = boardState[row][col]; if (cellState.state !== 'empty') return; if(shots <= 0 && premiumShots <= 0) { showOutOfAmmoModal(); return; } const isPremiumShot = premiumShots > 0; targetCell.classList.add('shot'); if (cellState.shipId) { if (!isPremiumShot) { shots--; } handleHit(targetCell, isPremiumShot); } else { if (isPremiumShot) { premiumShots--; } else { shots--; } if (cellState.prizeId) { handlePrize(targetCell); } else { handleMiss(targetCell); } } updateStats(); checkGameOver(); }
+    function handleHit(cellEl, wasPremium) { const row = cellEl.dataset.row, col = cellEl.dataset.col; const hitShip = ships.find(ship => ship.id === boardState[row][col].shipId); if (!hitShip) return; boardState[row][col].state = 'hit'; cellEl.classList.add('hit'); const icon = icons.hit.cloneNode(true); icon.classList.add('icon'); cellEl.appendChild(icon); roundMoney += wasPremium ? 2500 : 500; premiumShots += 1; displayMessage(`TALÁLAT!<br>(${hitShip.size} egységes hajó)`, 1500, () => displayMessage("PRÉMIUM LÖVÉS!", 1500)); hitShip.hits++; if (hitShip.hits === hitShip.size) handleSunkShip(hitShip); }
+    function handlePrize(cellEl) { cellEl.classList.add('prize'); const icon = icons.prize.cloneNode(true); icon.classList.add('icon'); cellEl.appendChild(icon); const prize = currentRoundPrizes.find(p => p.id === boardState[cellEl.dataset.row][cellEl.dataset.col].prizeId); if (prize) showPrizeModal(prize); switchPlayer(); }
     function handleMiss(cellEl) { cellEl.classList.add('miss'); const icon = icons.miss.cloneNode(true); icon.classList.add('icon'); cellEl.appendChild(icon); displayMessage("MELLÉ!", 1500); switchPlayer(); }
-    function handleSunkShip(sunkShip) { sunkShip.sunk = true; sunkShip.sunkBy = currentPlayer; if (currentPlayer === 1) player1Score++; else player2Score++; updatePlayerUI(); roundMoney += 10000; displayMessage(`${sunkShip.name} elsüllyedt!`, 3000); sunkShip.coords.forEach(({ row, col }) => { gameBoardEl.querySelector(`[data-row='${row}'][data-col='${col}']`).classList.add('sunk'); }); renderFleetStatus(); }
+    function handleSunkShip(sunkShip) { sunkShip.sunk = true; sunkShip.sunkBy = currentPlayer; const pointsAwarded = 1 + sunkShip.size; if (currentPlayer === 1) player1Score += pointsAwarded; else player2Score += pointsAwarded; updatePlayerUI(); roundMoney += 10000; displayMessage(`${sunkShip.name} elsüllyedt!<br>+${pointsAwarded} pont`, 3000); sunkShip.coords.forEach(({ row, col }) => { gameBoardEl.querySelector(`[data-row='${row}'][data-col='${col}']`).classList.add('sunk'); }); renderFleetStatus(); }
     
     // --- Modals, Game Over, and Player Logic ---
-    function showPrizeModal(prize) { /* ... same as before ... */ }
-    function closePrizeModal() { /* ... same as before ... */ }
+    function showPrizeModal(prize) { prizeModal.classList.add('visible'); document.getElementById('prize-name').textContent = prize.name; const btnPoints = document.getElementById('btn-collect-points'); const btnCollect = document.getElementById('btn-collect-prize'); btnPoints.textContent = `${prize.value.toLocaleString()} Ft-ért eladom`; const cashHandler = () => { roundMoney += prize.value; updateStats(); closePrizeModal(); }; const collectHandler = () => { playerInventory.push({ ...prize, heldRounds: 0 }); renderPrizeList(); saveState(); closePrizeModal(); }; btnPoints.onclick = cashHandler; btnCollect.onclick = collectHandler; }
+    function closePrizeModal() { prizeModal.classList.remove('visible'); }
     function checkGameOver() { if (!gameOver && ships.every(ship => ship.sunk)) { gameOver = true; premiumShots = 0; updateStats(); setTimeout(startGrandPrizeGame, 1500); } }
-    function endGameNoAmmo() { gameOver = true; totalMoney += roundMoney; roundMoney = 0; displayMessage("VÉGE A JÁTÉKNAK!", 5000); updateStats(); saveState(); setTimeout(showWaitingScreen, 3000); }
-    function showOutOfAmmoModal() { const canBuy = (totalMoney + roundMoney) >= PRICES.shot; const canSell = playerInventory.length > 0; document.getElementById('btn-ammo-buy').style.display = canBuy ? 'block' : 'none'; document.getElementById('btn-ammo-sell').style.display = canSell ? 'block' : 'none'; if (!canBuy && !canSell) { document.getElementById('ammo-modal-text').textContent = "Nincs elég pénzed lőszerre és nincs mit eladnod. A csatának vége!"; } else { document.getElementById('ammo-modal-text').textContent = "Kapitány, kifogytunk a lőszerből! Mit tegyünk?"; } outOfAmmoModal.classList.add('visible'); }
-    function startGrandPrizeGame() { /* ... full function from before ... */ } // This is restored
+    function endGameNoAmmo() { gameOver = true; concludeRound(); }
+    function showOutOfAmmoModal() { const canBuy = (totalMoney + roundMoney) >= PRICES.shot; const canSell = playerInventory.length > 0; btnAmmoBuy.style.display = canBuy ? 'block' : 'none'; btnAmmoSell.style.display = canSell ? 'block' : 'none'; if (!canBuy && !canSell) { document.getElementById('ammo-modal-text').textContent = "Nincs elég pénzed lőszerre és nincs mit eladnod. A csatának vége!"; } else { document.getElementById('ammo-modal-text').textContent = "Kapitány, kifogytunk a lőszerből! Mit tegyünk?"; } outOfAmmoModal.classList.add('visible'); }
+    
+    function startGrandPrizeGame() {
+        const container = document.getElementById('grand-prize-ships'); container.innerHTML = '';
+        for (let i = 0; i < 10; i++) { container.innerHTML += `<button class="ship-choice" data-index="${i}"><div class="flipper"><div class="front"><svg viewBox="0 0 64 64"><path d="M61.9,25.9c-0.2-0.7-0.9-1.1-1.6-0.9l-7.4,1.9c-2-6.5-8.1-11.4-15.3-11.4h-1.2V9.9c0-2.8-2.2-5-5-5s-5,2.2-5,5v5.6h-1.2 c-7.2,0-13.3,4.9-15.3,11.4l-7.4-1.9c-0.7-0.2-1.4,0.2-1.6,0.9s0.2,1.4,0.9,1.6l7.4,1.9c-0.2,0.9-0.3,1.9-0.3,2.9v1.8H2V48h60V32.3 h-2v-1.8C62.2,28.8,62.2,27.2,61.9,25.9z M32,23.5c4.4,0,8,3.6,8,8s-3.6,8-8,8s-8-3.6-8-8S27.6,23.5,32,23.5z"/></svg></div><div class="back"></div></div></button>`; }
+        const shipChoices = document.querySelectorAll('.ship-choice'); const closeBtn = document.getElementById('btn-close-grand-prize'); document.getElementById('grand-prize-result').innerHTML = ""; closeBtn.style.display = 'none';
+        const prizePool = [ { type: 'bankrupt', label: 'CSŐD' }, { type: 'sunk', label: 'HAJÓTÖRÉS' }, { type: 'money', value: 25000, label: '+25e Ft' }, { type: 'money', value: 50000, label: '+50e Ft' }, { type: 'money', value: 100000, label: '+100e Ft' }, { type: 'aid', aidType: 'sonar', label: '+1 Szónár' }, { type: 'aid', aidType: 'strike', label: '+1 Csapás' }, { type: 'double', label: '2X PÉNZ' }, { type: 'triple', label: '3X PÉNZ' }, { type: 'safe', label: 'MENTŐCSÓNAK' } ];
+        for (let i = prizePool.length - 1; i > 0; i--) { const j = Math.floor(seededRandom() * (i + 1)); [prizePool[i], prizePool[j]] = [prizePool[j], prizePool[i]]; }
+        const revealChoice = (choiceIndex) => { let resultText = ""; const result = prizePool[choiceIndex]; if (result.type === 'bankrupt') { totalMoney = 0; roundMoney = 0; playerSonarCharges = 0; playerStrikeCharges = 0; resultText = `TELJES CSŐD! Minden elveszett!`; } else if (result.type === 'sunk') { roundMoney = 0; resultText = `HAJÓTÖRÉS! Elveszett a kör nyereménye!`; } else if (result.type === 'safe') { resultText = `MENTŐCSÓNAK! Megtartottad a kör nyereményét.`; } else if (result.type === 'double') { roundMoney *= 2; resultText = `DUPLÁZÓ! Nyeremény: ${roundMoney.toLocaleString()} Ft!`; } else if (result.type === 'triple') { roundMoney *= 3; resultText = `TRIPLÁZÓ! Nyeremény: ${roundMoney.toLocaleString()} Ft!`; } else if (result.type === 'money') { roundMoney += result.value; resultText = `Készpénz! +${result.value.toLocaleString()} Ft!`; } else if (result.type === 'aid') { if(result.aidType === 'sonar') { playerSonarCharges++; resultText = `Felszerelés! +1 Szónár!`; } else { playerStrikeCharges++; resultText = `Felszerelés! +1 Célzott Csapás!`; } } totalMoney += roundMoney; roundMoney = 0; document.getElementById('grand-prize-result').textContent = resultText; shipChoices[choiceIndex].classList.add('is-flipped'); let delay = 500; shipChoices.forEach((ship, index) => { if(index === choiceIndex) return; setTimeout(() => ship.classList.add('is-flipped'), delay); delay += 100; }); setTimeout(() => { closeBtn.style.display = 'block'; updateStats(); }, delay + 200); };
+        const choiceHandler = (e) => { const btn = e.currentTarget; if(btn.classList.contains('is-flipped')) return; const choiceIndex = parseInt(btn.dataset.index); shipChoices.forEach(s => s.removeEventListener('click', choiceHandler)); shipChoices.forEach((ship, index) => { const back = ship.querySelector('.back'); const prize = prizePool[index]; back.className = `back ${prize.type}`; back.textContent = prize.label; }); if (roundMoney > 10000 && seededRandom() < 0.33) { const guaranteedAmount = Math.floor(roundMoney * 0.7 / 1000) * 1000; document.getElementById('temptation-text').textContent = `Biztos vagy a dolgodban? Vagy inkább elfogadsz garantált ${guaranteedAmount.toLocaleString()} Ft-ot?`; document.getElementById('btn-reject-offer').onclick = () => { temptationModal.classList.remove('visible'); revealChoice(choiceIndex); }; document.getElementById('btn-accept-offer').onclick = () => { temptationModal.classList.remove('visible'); totalMoney += guaranteedAmount; roundMoney = 0; updateStats(); revealChoice(choiceIndex); }; setTimeout(() => temptationModal.classList.add('visible'), 500); } else { revealChoice(choiceIndex); } };
+        shipChoices.forEach(btn => btn.addEventListener('click', choiceHandler));
+        closeBtn.onclick = () => { grandPrizeModal.classList.remove('visible'); concludeRound(); };
+        grandPrizeModal.classList.add('visible');
+    }
+    
+    function concludeRound() {
+        let winnerMessage;
+        if (player1Score > player2Score) {
+            winnerMessage = `${player1Name} NYERT!<br>${player1Score} ponttal`;
+        } else if (player2Score > player1Score) {
+            winnerMessage = `${player2Name} NYERT!<br>${player2Score} ponttal`;
+        } else {
+            winnerMessage = `DÖNTETLEN!<br>${player1Score} ponttal`;
+        }
+        displayMessage(winnerMessage, 4000, () => {
+            saveState();
+            showWaitingScreen();
+        });
+    }
+
     function switchPlayer() { currentPlayer = (currentPlayer === 1) ? 2 : 1; updatePlayerUI(); }
-    function updatePlayerUI() { player1InfoEl.textContent = `${player1Name}: ${player1Score} Pont`; player2InfoEl.textContent = `${player2Name}: ${player2Score} Pont`; player1InfoEl.classList.toggle('active', currentPlayer === 1); player2InfoEl.classList.toggle('active', currentPlayer === 2); }
+    function updatePlayerUI() { player1InfoEl.innerHTML = `${player1Name}: ${player1Score} Pont <span class="lock-icon"></span>`; player2InfoEl.innerHTML = `${player2Name}: ${player2Score} Pont <span class="lock-icon"></span>`; player1InfoEl.classList.toggle('active', currentPlayer === 1); player2InfoEl.classList.toggle('active', currentPlayer === 2); updateLockUI(); }
+    function togglePlayerLock(playerNum) { lockedPlayer = (lockedPlayer === playerNum) ? 0 : playerNum; updateLockUI(); }
+    function updateLockUI() { player1InfoEl.classList.remove('locked'); player2InfoEl.classList.remove('locked'); document.querySelector('#player1-info .lock-icon').textContent = ''; document.querySelector('#player2-info .lock-icon').textContent = ''; boardWrapperEl.classList.remove('board-locked'); renamePlayersBtn.textContent = "Nevek Módosítása"; if (lockedPlayer === 1) { player1InfoEl.classList.add('locked'); document.querySelector('#player1-info .lock-icon').textContent = '🔒'; renamePlayersBtn.textContent = "Vezérlés Feloldása"; } else if (lockedPlayer === 2) { player2InfoEl.classList.add('locked'); document.querySelector('#player2-info .lock-icon').textContent = '🔒'; renamePlayersBtn.textContent = "Vezérlés Feloldása"; } if (lockedPlayer !== 0 && lockedPlayer !== currentPlayer) { boardWrapperEl.classList.add('board-locked'); } }
 
     // --- UI, Stats & Shop ---
-    function updateStats() { const shipsRemaining = ships ? ships.filter(s => !s.sunk).length : 0; const shipsTotal = ships ? ships.length : 7; const currentMoney = totalMoney + roundMoney; shotsEl.textContent = shots; scoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; premiumEl.textContent = premiumShots; shipsLeftEl.textContent = `${shipsRemaining}/${shipsTotal}`; premiumStatEl.classList.toggle('active', premiumShots > 0 && !gameOver); buySonarBtn.disabled = currentMoney < PRICES.sonar; buyStrikeBtn.disabled = currentMoney < PRICES.strike; openBuyShotsBtn.disabled = currentMoney < PRICES.shot; sonarChargesBadge.textContent = playerSonarCharges; strikeChargesBadge.textContent = playerStrikeCharges; useSonarBtn.disabled = playerSonarCharges <= 0; useStrikeBtn.disabled = playerStrikeCharges <= 0; waitingScoreEl.textContent = `${(totalMoney + roundMoney).toLocaleString()} Ft`; }
-    function displayMessage(text, duration = 2000, callback) { clearTimeout(messageTimeout); const overlay = boardMessageOverlayEl; overlay.textContent = text; overlay.style.animation = 'none'; overlay.offsetHeight; overlay.style.animation = `fade-in-out-zoom ${duration / 1000}s ease-in-out forwards`; messageTimeout = setTimeout(() => { if (callback) callback(); }, duration); }
+    function updateStats() { const shipsRemaining = ships ? ships.filter(s => !s.sunk).length : 0; const shipsTotal = ships ? ships.length : 7; const currentMoney = (Number(totalMoney) || 0) + (Number(roundMoney) || 0); shotsEl.textContent = shots; scoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; premiumEl.textContent = premiumShots; shipsLeftEl.textContent = `${shipsRemaining}/${shipsTotal}`; premiumStatEl.classList.toggle('active', premiumShots > 0 && !gameOver); buySonarBtn.disabled = currentMoney < PRICES.sonar; buyStrikeBtn.disabled = currentMoney < PRICES.strike; openBuyShotsBtn.disabled = currentMoney < PRICES.shot; sonarChargesBadge.textContent = playerSonarCharges; strikeChargesBadge.textContent = playerStrikeCharges; useSonarBtn.disabled = playerSonarCharges <= 0; useStrikeBtn.disabled = playerStrikeCharges <= 0; waitingScoreEl.textContent = `${currentMoney.toLocaleString()} Ft`; }
+    function displayMessage(text, duration = 2000, callback) { clearTimeout(messageTimeout); const overlay = boardMessageOverlayEl; overlay.innerHTML = text; overlay.style.animation = 'none'; overlay.offsetHeight; overlay.style.animation = `fade-in-out-zoom ${duration / 1000}s ease-in-out forwards`; messageTimeout = setTimeout(() => { if (callback) callback(); }, duration); }
     function purchase(cost, callback) { if (totalMoney + roundMoney >= cost) { let rem = cost; if (roundMoney > 0) { const fromRound = Math.min(roundMoney, rem); roundMoney -= fromRound; rem -= fromRound; } if (rem > 0) { totalMoney -= rem; } callback(); updateStats(); saveState(); } else { displayMessage("Nincs elég pénzed!", 2000); } }
     function updateAmmoCost() { let quantity = parseInt(ammoQuantityInput.value) || 1; if (quantity < 1) { quantity = 1; } ammoQuantityInput.value = quantity; const totalCost = quantity * PRICES.shot; ammoTotalCostEl.textContent = `${totalCost.toLocaleString()} Ft`; buyAmmoConfirmBtn.disabled = totalCost > (totalMoney + roundMoney); }
     ammoQuantityInput.addEventListener('input', updateAmmoCost);
@@ -334,7 +441,12 @@ document.addEventListener('DOMContentLoaded', () => {
     buyStrikeBtn.addEventListener('click', () => purchase(PRICES.strike, () => { playerStrikeCharges++; displayMessage("+1 Célzott Csapás", 2000); }));
     useSonarBtn.addEventListener('click', () => { if(playerSonarCharges > 0) { playerSonarCharges--; displayMessage("SZÓNÁR BEVETVE!", 4000); updateStats(); saveState(); } }); 
     useStrikeBtn.addEventListener('click', () => { if(playerStrikeCharges > 0) { playerStrikeCharges--; displayMessage("CÉLZOTT CSAPÁS!", 2000); updateStats(); saveState(); } }); 
-    renamePlayersBtn.addEventListener('click', () => { const newP1 = prompt("Add meg az 1. Játékos nevét:", player1Name); if (newP1) player1Name = newP1; const newP2 = prompt("Add meg a 2. Játékos nevét:", player2Name); if (newP2) player2Name = newP2; updatePlayerUI(); renderFleetStatus(); });
+    renamePlayersBtn.addEventListener('click', () => { if (lockedPlayer !== 0) { togglePlayerLock(0); return; } const newP1 = prompt("Add meg az 1. Játékos nevét:", player1Name); if (newP1) player1Name = newP1; const newP2 = prompt("Add meg a 2. Játékos nevét:", player2Name); if (newP2) player2Name = newP2; updatePlayerUI(); renderFleetStatus(); });
+    player1InfoEl.addEventListener('click', () => togglePlayerLock(1));
+    player2InfoEl.addEventListener('click', () => togglePlayerLock(2));
+    btnAmmoBuy.addEventListener('click', () => { outOfAmmoModal.classList.remove('visible'); buyAmmoModal.classList.add('visible'); updateAmmoCost(); });
+    btnAmmoSell.addEventListener('click', () => { let totalSellValue = 0; playerInventory.forEach(p => { totalSellValue += Math.floor(p.value * (1 + 0.25 * (p.heldRounds || 0))); }); totalMoney += totalSellValue; playerInventory = []; outOfAmmoModal.classList.remove('visible'); displayMessage(`Zsákmány eladva:<br>+${totalSellValue.toLocaleString()} Ft`, 3000); renderPrizeList(); updateStats(); setTimeout(showOutOfAmmoModal, 500); });
+    btnAmmoEnd.addEventListener('click', () => { outOfAmmoModal.classList.remove('visible'); endGameNoAmmo(); });
 
     // --- Time & Layout Management ---
     function handleLayout() { const prizeCorner = document.getElementById('prize-corner'); const mainPanel = document.getElementById('main-panel'); const sidePanel = document.getElementById('side-panel'); if (window.innerWidth <= 900) { if (!sidePanel.contains(prizeCorner)) sidePanel.appendChild(prizeCorner); } else { if (!mainPanel.contains(prizeCorner)) mainPanel.appendChild(prizeCorner); } }
@@ -351,4 +463,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html>
+</html>```
