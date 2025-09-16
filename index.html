@@ -6,697 +6,1028 @@
     <title>Globális Torpedó - Bajnokok Ligája</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800&family=Poppins:wght@400;600&display=swap');
-
-        :root {
-            --cell-bg: rgba(255, 255, 255, 0.05);
-            --cell-border: #8e9eab;
-            --text-color: #E0E5EC; --hit-color: #ff4757; --miss-color: #537895;
-            --sunk-color: #343a40; --prize-color: #feca57; --premium-glow: #ffd700;
-            --mine-color: #e84118; --intel-color: #00a8ff;
-            --aid-color: #3742fa; --ammo-color: #4cd137;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; color: var(--text-color); margin: 0; padding: 20px; box-sizing: border-box;
-            background-image: linear-gradient(to bottom, rgba(9, 20, 27, 0.85), rgba(15, 32, 39, 0.9)), url('https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
-            background-size: cover; background-position: center center; background-attachment: fixed; background-repeat: no-repeat;
-        }
-
-        #game-container {
-            width: 100%; max-width: 950px;
-            background: transparent;
-            padding: 0;
-            display: grid;
-            gap: 20px;
-            grid-template-columns: 1fr 260px;
-            grid-template-areas: "main side";
-        }
-
-        #main-panel { grid-area: main; min-width: 320px; display: flex; flex-direction: column; gap: 20px; }
+        :root { --cell-bg: rgba(255, 255, 255, 0.05); --cell-border: #8e9eab; --text-color: #E0E5EC; --hit-color: #ff4757; --miss-color: #537895; --sunk-color: #343a40; --prize-color: #feca57; --premium-glow: #ffd700; --mine-color: #e84118; --intel-color: #00a8ff; --aid-color: #3742fa; --ammo-color: #4cd137; --shield-color: #f5f6fa; --double-points-color: #feca57; }
+        body { font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; color: var(--text-color); margin: 0; padding: 10px; box-sizing: border-box; background-image: linear-gradient(to bottom, rgba(9, 20, 27, 0.85), rgba(15, 32, 39, 0.9)), url('https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'); background-size: cover; background-position: center center; background-attachment: fixed; background-repeat: no-repeat; }
+        #game-container { width: 100%; max-width: 950px; background: transparent; padding: 0; display: grid; gap: 20px; grid-template-columns: 1fr 260px; grid-template-areas: "main side"; }
+        #main-panel { grid-area: main; min-width: 0; display: flex; flex-direction: column; gap: 15px; }
         #side-panel { grid-area: side; width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px;}
-
-        #game-header { text-align: center; }
-        #game-header h1 {
-            font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 8vw, 4rem); color: white;
-            margin: 0 0 5px 0; text-shadow: 0 0 10px var(--cell-border), 0 0 20px var(--cell-border);
-        }
-        #open-rules-modal-btn {
-            background: none; border: none; color: var(--cell-border);
-            font-family: 'Poppins', sans-serif; font-size: 0.85em;
-            cursor: pointer; text-decoration: underline; padding: 0;
-            opacity: 0.8; transition: opacity 0.2s;
-        }
-        #open-rules-modal-btn:hover { opacity: 1; color: var(--premium-glow); }
-
+        .logo-header { display: flex; align-items: center; justify-content: center; gap: 15px; }
+        .logo-header svg { width: 50px; height: 50px; flex-shrink: 0; }
+        .logo-header h1, .logo-header h2 { margin: 0; text-shadow: 0 0 10px var(--cell-border), 0 0 20px var(--cell-border); font-family: 'Orbitron', sans-serif; }
+        #game-header h1 { font-size: clamp(2rem, 8vw, 2.8rem); color: white; }
+        #game-lobby h2 { font-size: clamp(1.8rem, 7vw, 2.5rem); color: var(--premium-glow); }
+        #open-rules-btn { background: none; border: none; color: var(--cell-border); font-family: 'Poppins', sans-serif; font-size: 0.85em; cursor: pointer; text-decoration: underline; padding: 0; opacity: 0.8; transition: opacity 0.2s; }
+        #open-rules-btn:hover { opacity: 1; color: var(--premium-glow); }
         #stats-panel { display: flex; justify-content: space-around; gap: 5px; text-align: center; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; border: 1px solid rgba(142, 158, 171, 0.5); }
         .stat { background: none; border: none; padding: 5px; flex-grow: 1; }
         .stat h3 { margin: 0; font-size: 0.7em; color: var(--cell-border); text-transform: uppercase; font-weight: 400; }
         .stat p { margin: 2px 0 0 0; font-size: 1.2em; font-weight: 600; font-family: 'Orbitron'; }
         #premium-stat.active p { color: var(--premium-glow); animation: pulse 1.5s infinite; }
-
-        #player-controls { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-        .player-info { font-size: 1.1em; font-weight: 600; transition: all 0.3s ease; cursor: pointer; padding: 5px 10px; border: 2px solid transparent; border-radius: 10px; }
-        .player-info.active { color: var(--premium-glow); transform: scale(1.1); text-shadow: 0 0 8px var(--premium-glow); }
-        .player-info.locked { border-color: var(--premium-glow); box-shadow: 0 0 10px var(--premium-glow); }
-        .lock-icon { margin-left: 5px; }
-        #rename-players-btn { background-color: var(--cell-bg); border: 1px solid var(--cell-border); color: var(--text-color); padding: 8px 15px; border-radius: 10px; cursor: pointer; font-family: 'Poppins'; font-weight: 600; transition: all 0.2s; }
-        #rename-players-btn:hover { background-color: rgba(142, 158, 171, 0.4); }
-
-        #turn-indicator-bar {
-            text-align: center; padding: 5px; font-family: 'Orbitron', sans-serif;
-            font-size: 1.1em; color: var(--premium-glow); text-shadow: 0 0 8px var(--premium-glow);
-            background: rgba(0,0,0,0.25); border-radius: 10px; margin-bottom: 10px;
-            height: 20px; line-height: 20px; transition: opacity 0.3s;
-        }
-
+        #scores-panel { display: flex; justify-content: space-between; padding: 5px 10px; font-family: 'Poppins'; font-size: 1.1em; font-weight: 600; }
+        #p1-score-display, #p2-score-display { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 48%; }
+        #p1-score-display { text-align: left; }
+        #p2-score-display { text-align: right; }
+        .score-value { font-family: 'Orbitron'; color: var(--premium-glow); font-size: 1.1em; }
+        #turn-indicator-bar { text-align: center; padding: 5px; font-family: 'Orbitron', sans-serif; font-size: 1.1em; color: var(--premium-glow); text-shadow: 0 0 8px var(--premium-glow); background: rgba(0,0,0,0.25); border-radius: 10px; height: auto; min-height: 20px; line-height: 20px; transition: opacity 0.3s; }
         #board-wrapper { position: relative; }
-        .board-locked #game-board td:not(.shot) { cursor: not-allowed !important; }
-        .board-locked #game-board td:not(.shot):hover { background-color: transparent; transform: none; }
-        .sonar-active #game-board td:not(.shot) { cursor: crosshair !important; }
-        .strike-active #game-board td:not(.shot) { cursor: crosshair !important; }
-
-        #board-message-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: clamp(1.8rem, 8vw, 3rem); color: var(--premium-glow); text-shadow: 0 0 10px #000, 0 0 20px var(--premium-glow); pointer-events: none; opacity: 0; z-index: 10; text-align: center; text-transform: uppercase; line-height: 1.2; }
-
-        #game-board { border-collapse: separate; border-spacing: 4px; margin: 0 auto; width: 100%; }
-        #game-board th, #game-board td { width: clamp(28px, 6.5vw, 40px); height: clamp(28px, 6.5vw, 40px); text-align: center; font-family: 'Orbitron'; color: var(--cell-border); vertical-align: middle; user-select: none; }
-        #game-board th { background: rgba(255, 255, 255, 0.03); border-radius: 8px; font-size: clamp(0.7rem, 2vw, 0.9rem); }
+        #board-message-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-size: clamp(1.5rem, 8vw, 2.5rem); color: var(--premium-glow); text-shadow: 0 0 10px #000, 0 0 20px var(--premium-glow); pointer-events: none; opacity: 0; z-index: 10; text-align: center; text-transform: uppercase; line-height: 1.2; }
+        #game-board { border-collapse: separate; border-spacing: 3px; margin: 0 auto; width: 100%; }
+        #game-board th, #game-board td { width: clamp(30px, 8.5vw, 45px); height: clamp(30px, 8.5vw, 45px); text-align: center; font-family: 'Orbitron'; color: var(--cell-border); vertical-align: middle; user-select: none; }
         #game-board td { background: transparent; border: 2px solid var(--cell-border); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; position: relative; }
         #game-board td:hover:not(.shot) { background-color: rgba(142, 158, 171, 0.3); transform: scale(1.05); }
-        #game-board td.shot { cursor: not-allowed; } #game-board td.shot:hover { transform: none; }
+        #game-board td.shot { cursor: not-allowed; }
         #game-board td.miss { background-color: var(--miss-color); }
-        #game-board td.hit { background-color: var(--hit-color); animation: hit-shake 0.5s; }
-        #game-board td.sunk { animation: sink-animation 1s forwards; }
+        #game-board td.hit { background-color: var(--hit-color); }
+        #game-board td.sunk { background-color: var(--sunk-color); opacity: 0.7; }
         #game-board td.points { background-color: var(--prize-color); }
         #game-board td.mine { background-color: var(--mine-color); }
-        #game-board td.intel { background-color: var(--intel-color); }
         #game-board td.ammo { background-color: var(--ammo-color); }
-        #game-board td.aid { background-color: var(--aid-color); }
-        #game-board td.sonar-reveal { animation: sonar-pulse 1.5s forwards; }
-        @keyframes sonar-pulse { 0% { background-color: transparent; } 50% { background-color: rgba(255, 215, 0, 0.7); box-shadow: 0 0 15px var(--premium-glow); } 100% { background-color: transparent; } }
-
-        #waiting-panel { display: none; text-align: center; padding: 20px; background: rgba(9, 20, 27, 0.9); border: 1px solid var(--premium-glow); border-radius: 20px; }
-        #waiting-title { font-family: 'Orbitron'; font-size: 2em; color: var(--premium-glow); margin-bottom: 10px; }
-        #waiting-info { font-family: 'Poppins'; font-size: 1.2em; margin: 15px 0; color: white; }
-        #live-time-waiting { font-family: 'Orbitron'; font-size: 1.5em; color: var(--premium-glow); }
-        #next-round-info { font-size: 1.2em; color: var(--text-color); margin-top: 15px; }
-        #waiting-time { font-family: 'Orbitron'; font-size: 1.5em; color: var(--premium-glow); }
-
-        .icon { width: 70%; height: 70%; vertical-align: middle; position: absolute; top: 15%; left: 15%; }
-
+        #game-board td.intel { background-color: var(--intel-color); }
+        #game-board td.shield { background-color: var(--shield-color); }
+        #game-board td.double_points { background-color: var(--double-points-color); }
         .side-box { background: rgba(0,0,0,0.25); border: 1px solid var(--cell-border); border-radius: 15px; padding: 15px; }
         .side-box h2 { font-family: 'Orbitron'; text-align: center; color: var(--cell-border); border-bottom: 2px solid var(--cell-border); padding-bottom: 5px; margin-top: 0; font-size: 1.2em; }
-        #fleet-list { list-style: none; padding: 0; margin: 0; }
-        #fleet-list li { background: var(--cell-bg); padding: 8px; border-radius: 8px; margin-bottom: 8px; font-weight: 600; transition: all 0.3s; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
-        #fleet-list li.found { border-color: var(--premium-glow); box-shadow: 0 0 8px var(--premium-glow); background-color: rgba(255, 215, 0, 0.1); }
-        #fleet-list li.sunk { background-color: var(--sunk-color); color: #999; text-decoration: line-through; border-color: #555; box-shadow: none; }
+        #fleet-list, #fleet-list-desktop { list-style: none; padding: 0; margin: 0; }
+        #fleet-list li, #fleet-list-desktop li, .leaderboard-row { background: var(--cell-bg); padding: 8px; border-radius: 8px; margin-bottom: 8px; font-weight: 600; transition: all 0.3s; font-size: 0.9em; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; }
+        #fleet-list li.sunk, #fleet-list-desktop li.sunk { background-color: var(--sunk-color); color: #999; text-decoration: line-through; border-color: #555; box-shadow: none; }
+        #fleet-list li.found, #fleet-list-desktop li.found { border-color: var(--premium-glow); box-shadow: 0 0 8px var(--premium-glow); background-color: rgba(255, 215, 0, 0.1); }
+        .leaderboard-subheader { font-family: 'Orbitron'; color: var(--cell-border); text-align: center; font-size: 0.9em; margin: 10px 0 5px 0; padding-bottom: 4px; border-bottom: 1px solid var(--cell-border); }
+        .leaderboard-value { font-family: 'Orbitron'; font-weight: bold; color: var(--premium-glow); }
         .veteran-star { color: var(--premium-glow); margin-right: 5px; font-size: 1.2em; }
-
-        #leaderboard { padding: 15px; }
-        .leaderboard-subheader { font-family: 'Orbitron'; color: var(--cell-border); text-align: center; font-size: 1em; margin: 15px 0 8px 0; padding-bottom: 4px; border-bottom: 1px solid var(--cell-border); }
-        .leaderboard-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 0.95em; padding: 5px; border-radius: 8px; transition: all 0.3s ease; }
-        .leaderboard-row span:first-child { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 5px; }
-        .leaderboard-row span:last-child { font-family: 'Orbitron'; font-weight: bold; font-size: 1.1em; color: var(--premium-glow); flex-shrink: 0; }
-        .leaderboard-row.active-player-highlight { background-color: rgba(255, 215, 0, 0.15); box-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
-        #last-week-champion-box { text-align: center; margin-top: 15px; }
-        #last-week-champion-box h4 { margin: 0 0 5px 0; color: var(--cell-border); font-weight: 400; font-size: 0.9em; text-transform: uppercase; }
-        #last-week-champion-name { font-family: 'Orbitron'; font-size: 1.3em; color: var(--premium-glow); text-shadow: 0 0 8px var(--premium-glow); }
-
-        #new-map-button { display: none; width: 100%; margin-top: 15px; padding: 12px; font-size: 1em; font-weight: 700; font-family: 'Orbitron'; color: #000; background-color: var(--premium-glow); border: none; border-radius: 15px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 20px var(--premium-glow); }
-        #new-map-button:hover { transform: scale(1.05); }
-
-        #aids-container { background: rgba(0,0,0,0.25); border: 1px solid var(--cell-border); border-radius: 15px; padding: 15px; margin-top: 20px; }
-        #aids-container h2 { font-family: 'Orbitron'; text-align: center; color: var(--cell-border); border-bottom: 2px solid var(--cell-border); padding-bottom: 5px; margin-top: 0; font-size: 1.2em; }
-        #aid-items-stored { display: flex; flex-direction: column; gap: 8px; }
-        #aid-items-stored button { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px; background-color: var(--cell-bg); border: 1px solid var(--cell-border); color: var(--text-color); border-radius: 8px; cursor: pointer; transition: all 0.2s; font-family: 'Poppins'; font-weight: 600; font-size: 1em; }
-        #aid-items-stored button .aid-count { font-family: 'Orbitron'; font-size: 1.2em; color: var(--premium-glow); }
-        #aid-items-stored button:hover:not(:disabled) { background-color: rgba(142, 158, 171, 0.4); }
-        #aid-items-stored button:disabled { cursor: not-allowed; opacity: 0.5; }
-
+        #game-lobby { text-align: center; padding: 40px 20px; background: rgba(0,0,0,0.4); border-radius: 20px; }
+        #game-lobby button { font-family: 'Orbitron'; background-color: var(--premium-glow); color: black; border: none; padding: 15px 30px; font-size: 1.2em; border-radius: 10px; cursor: pointer; transition: all 0.3s; margin: 5px; }
+        #game-lobby button:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--premium-glow); }
+        #game-lobby button:disabled { background-color: #777; cursor: not-allowed; transform: none; box-shadow: none; }
+        #game-code-wrapper { display: flex; justify-content: center; align-items: center; gap: 5px; margin-top: 10px; }
+        #game-code-container { display: none; }
+        #game-code-display { width: 100%; max-width: 200px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--premium-glow); color: white; border-radius: 8px; font-family: 'Orbitron'; text-align: center; font-size: 1.5em; letter-spacing: 4px; }
+        #copy-code-btn { background: var(--cell-bg); border: 1px solid var(--premium-glow); color: var(--premium-glow); padding: 8px; border-radius: 8px; cursor: pointer; font-size: 1.2em; line-height: 1; }
+        #player-name-input, #game-code-input { padding: 10px; font-size: 1em; margin-bottom: 15px; width: 80%; max-width: 300px; border-radius: 8px; border: 1px solid var(--cell-border); background: rgba(0,0,0,0.3); color: white; text-align: center; }
+        .icon { width: 70%; height: 70%; vertical-align: middle; position: absolute; top: 15%; left: 15%; }
+        #new-port-btn { width: 100%; margin-top: 15px; padding: 12px; font-size: 1em; font-weight: 700; font-family: 'Orbitron'; color: #000; background-color: var(--premium-glow); border: none; border-radius: 15px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 15px var(--premium-glow); }
+        #new-port-btn:hover { transform: scale(1.02); }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 1000; }
         .modal.visible { opacity: 1; visibility: visible; }
-        .modal-content { background: linear-gradient(145deg, #232526, #414345); border: 2px solid var(--premium-glow); border-radius: 20px; padding: 30px; text-align: center; color: white; width: 90%; max-width: 650px; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 0 30px var(--premium-glow); }
+        .modal-content { background: linear-gradient(145deg, #232526, #414345); border: 2px solid var(--premium-glow); border-radius: 20px; padding: 20px; text-align: center; color: white; width: 90%; max-width: 650px; transform: scale(0.9); transition: transform 0.3s; box-shadow: 0 0 30px var(--premium-glow); }
         .modal.visible .modal-content { transform: scale(1); }
-        .modal-content h2 { font-family: 'Orbitron'; margin-top: 0; font-size: 2.2em; text-shadow: 0 0 10px var(--premium-glow); }
-        .modal-content p { font-size: 1.1em; line-height: 1.6; }
-        .modal-buttons { display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap; justify-content: center; }
-        .modal-buttons button { flex-grow: 1; padding: 12px; font-size: 1em; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.2s; min-width: 150px; }
-        .modal-buttons button:hover { transform: scale(1.05); }
-        .btn-confirm { background-color: var(--premium-glow); color: #000; } .btn-cancel { background-color: var(--sunk-color); color: #fff; }
-
-        #rules-content, #summary-content { text-align: left; max-height: 60vh; overflow-y: auto; padding-right: 15px; }
-        #rules-content h3, #summary-content h3 { color: var(--premium-glow); border-bottom: 1px solid var(--premium-glow); padding-bottom: 5px; margin-top: 20px; }
+        .modal-content h2 { font-family: 'Orbitron'; margin-top: 0; font-size: 1.8em; text-shadow: 0 0 10px var(--premium-glow); }
+        #rules-content { text-align: left; max-height: 60vh; overflow-y: auto; padding-right: 15px; font-size: 0.9em; }
+        #rules-content h3 { color: var(--premium-glow); border-bottom: 1px solid var(--premium-glow); padding-bottom: 5px; margin-top: 20px; }
         #rules-content ul { padding-left: 20px; }
-
-        #grand-prize-ships { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; perspective: 1000px; max-width: 550px; margin-left: auto; margin-right: auto; }
-        #grand-prize-status { font-weight: bold; font-size: 1.2em; margin-top: 15px; }
-        .flipper { position: relative; width: 85px; height: 85px; transition: transform 0.8s; transform-style: preserve-3d; }
-        .ship-choice { background: none; border: none; cursor: pointer; padding: 0; } .ship-choice[disabled] { cursor: not-allowed; opacity: 0.5; }
+        #grand-prize-ships { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 15px; perspective: 1000px; }
+        #grand-prize-status { font-weight: bold; font-size: 1.1em; margin-top: 10px; }
+        .flipper { position: relative; width: 80px; height: 80px; transition: transform 0.8s; transform-style: preserve-3d; }
+        .ship-choice { background: none; border: none; cursor: pointer; padding: 0; } .ship-choice[disabled] { cursor: not-allowed; }
         .ship-choice.is-flipped .flipper { transform: rotateY(180deg); }
         .front, .back { position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column; border-radius: 15px; border: 2px solid var(--cell-border); }
         .front { background: rgba(0,0,0,0.3); }
-        .front svg { width: 75px; height: 75px; fill: #ffffff; transition: all 0.3s ease; }
-        .ship-choice:hover:not(:disabled) .front svg { fill: var(--premium-glow); transform: scale(1.1); }
-        .back { transform: rotateY(180deg); font-family: 'Orbitron'; font-size: 1.1em; padding: 5px; line-height: 1.2; text-align: center; font-weight: bold; color: white; }
-        .back.good { background: #006400; text-shadow: 0 0 8px #90ee90; } .back.bad { background: #8B0000; text-shadow: 0 0 8px #ff4757; } .back.neutral { background: #003366; text-shadow: 0 0 8px #00a8ff; } .back.jackpot { background: var(--premium-glow); color: #000; text-shadow: 0 0 10px #fff; }
-        #grand-prize-result { margin-top: 15px; height: 40px; font-size: 1.3em; font-weight: bold; }
-
+        .front svg { width: 50px; height: 50px; fill: #ffffff; }
+        .back { transform: rotateY(180deg); font-family: 'Orbitron'; font-size: 0.8em; padding: 5px; line-height: 1.2; text-align: center; font-weight: bold; color: white; }
+        .back.good { background: #006400; } .back.bad { background: #8B0000; } .back.neutral { background: #003366; } .back.jackpot { background: var(--premium-glow); color: #000; }
+        #grand-prize-result { margin-top: 15px; min-height: 20px; font-size: 1em; font-weight: bold; }
+        #new-port-info { margin-top: 15px; font-size: 1.1em; font-family: 'Orbitron'; color: var(--premium-glow); }
         @keyframes pulse { 50% { text-shadow: 0 0 15px var(--premium-glow); } }
-        @keyframes hit-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        @keyframes sink-animation { 0% { background-color: var(--hit-color); transform: scale(1.1); border-color: white; } 50% { background-color: var(--hit-color); transform: scale(0.8); opacity: 0.8; } 100% { background-color: var(--sunk-color); transform: scale(1); opacity: 0.6; border-color: var(--sunk-color); } }
         @keyframes fade-in-out-zoom { 0% { transform: scale(0.8); opacity: 0; } 15% { transform: scale(1.1); opacity: 1; } 85% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0; } }
-
         @media (max-width: 900px) {
-            #game-container { display: flex; flex-direction: column; }
-            #main-panel, #side-panel { width: 100%; }
-            #main-panel { order: 1; }
-            #side-panel { order: 2; display: flex; flex-direction: row; flex-wrap: wrap; gap: 15px; }
-            .side-box { flex-grow: 1; min-width: calc(50% - 10px); }
-            #fleet-status { order: 10; width: 100%; margin-top: 20px; }
-            #new-map-button { order: 12; }
-            #aids-container { order: 11; }
+            body { padding: 5px; display: block; }
+            #game-container { grid-template-columns: 1fr; grid-template-areas: "main"; }
+            #side-panel { display: none; }
+            #main-panel { gap: 10px; }
+            #fleet-status-desktop, #leaderboard-desktop { display: none; }
+        }
+        @media (min-width: 901px) {
+            #fleet-status, #leaderboard-mobile { display: none; }
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
+    <div id="game-lobby">
+        <div class="logo-header">
+            <svg id="game-logo-svg" viewBox="0 0 100 100"></svg>
+            <h2>Globális Torpedó</h2>
+        </div>
+        <p>Add meg a neved a bajnoksághoz:</p>
+        <input type="text" id="player-name-input" placeholder="Kapitány Neve" maxlength="15">
+        <br>
+        <button id="single-player-btn">Gyakorlás (Egyjátékos)</button>
+        <button id="create-game-btn">Új Online Játék</button>
+        
+        <div id="join-game-container">
+            <p>Vagy csatlakozz egy játékhoz a kóddal:</p>
+            <input type="text" id="game-code-input" placeholder="4-jegyű kód" maxlength="4">
+            <button id="join-game-btn">Csatlakozás</button>
+        </div>
+
+        <div id="game-code-container">
+            <p>Oszd meg ezt a kódot a barátoddal:</p>
+            <div id="game-code-wrapper">
+                <input type="text" id="game-code-display" readonly>
+                <button id="copy-code-btn" title="Kód másolása">📋</button>
+            </div>
+            <p>Várakozás a másik játékosra...</p>
+        </div>
+    </div>
+
+    <div id="game-container" style="display: none;">
         <div id="main-panel">
             <div id="game-header">
-                <h1>Globális Torpedó</h1>
-                <button id="open-rules-modal-btn">Részletes Játékszabályzat</button>
+                <div class="logo-header">
+                    <svg id="game-logo-svg-ingame" viewBox="0 0 100 100"></svg>
+                    <h1>Globális Torpedó</h1>
+                </div>
+                <button id="open-rules-btn">Részletes Játékszabályzat</button>
             </div>
             <div id="stats-panel">
-                <div id="shots-stat" class="stat"><h3>Lőszer</h3><p>60</p></div>
+                <div id="shots-stat" class="stat"><h3>Lőszer</h3><p>30</p></div>
                 <div id="premium-stat" class="stat"><h3>Prémium</h3><p>0</p></div>
                 <div id="ships-left-stat" class="stat"><h3>Hajók</h3><p>0</p></div>
             </div>
-            <div id="player-controls">
-                <span id="player1-info" class="player-info"></span>
-                <button id="rename-players-btn">Nevek Módosítása</button>
-                <span id="player2-info" class="player-info"></span>
+            <div id="scores-panel">
+                <div id="p1-score-display">Játékos 1: <span class="score-value">0</span></div>
+                <div id="p2-score-display">Játékos 2: <span class="score-value">0</span></div>
             </div>
-
             <div id="turn-indicator-bar"></div>
-
             <div id="board-wrapper">
                 <div id="board-message-overlay"></div>
                 <table id="game-board"></table>
             </div>
-
-            <div id="aids-container" style="display: none;">
-                <h2>Tartalék Segítségek (24 órás)</h2>
-                <div id="aid-items-stored"></div>
-            </div>
-
-            <div id="waiting-panel">
-                <h2 id="waiting-title">PIHENŐ A FEDÉLZETEN</h2>
-                <div id="waiting-info">
-                    <p>Aktuális idő: <span id="live-time-waiting"></span></p>
-                    <p id="next-round-info">A következő portya <span id="waiting-time"></span>-kor indul.</p>
-                </div>
-            </div>
-        </div>
-        <div id="side-panel">
-            <div id="leaderboard" class="side-box">
-                <h2>Bajnokok Csarnoka</h2>
-                <h3 class="leaderboard-subheader">Napi Pontok</h3>
-                <div id="p1-leaderboard-daily" class="leaderboard-row">
-                    <span id="p1-leaderboard-name-daily">Játékos 1</span>
-                    <span id="p1-daily-score">0</span>
-                </div>
-                <div id="p2-leaderboard-daily" class="leaderboard-row">
-                    <span id="p2-leaderboard-name-daily">Játékos 2</span>
-                    <span id="p2-daily-score">0</span>
-                </div>
-                <h3 class="leaderboard-subheader">Heti Győzelmek</h3>
-                <div id="p1-leaderboard-weekly" class="leaderboard-row">
-                    <span id="p1-leaderboard-name-weekly">Játékos 1</span>
-                    <span id="p1-weekly-wins">0</span>
-                </div>
-                 <div id="p2-leaderboard-weekly" class="leaderboard-row">
-                    <span id="p2-leaderboard-name-weekly">Játékos 2</span>
-                    <span id="p2-weekly-wins">0</span>
-                </div>
-                <div id="last-week-champion-box">
-                    <h4>Előző Hét Bajnoka</h4>
-                    <span id="last-week-champion-name">-</span>
-                </div>
-            </div>
-            <div id="arsenal" class="side-box">
-                <h2>Arzenál (Ebben a körben)</h2>
-                <div id="aid-items">
-                    <div class="aid-item"><button id="use-sonar">Szónár Bevetése (0)</button></div>
-                    <div class="aid-item"><button id="use-strike">Célzott Csapás (0)</button></div>
-                </div>
-            </div>
             <div id="fleet-status" class="side-box">
                 <h2>Flotta</h2><ul id="fleet-list"></ul>
             </div>
-            <button id="new-map-button">Új Vizekre, Kapitány!</button>
+            <div id="leaderboard-mobile" class="side-box">
+                <h2>Bajnokok Csarnoka</h2>
+                <div id="leaderboard-list-mobile"></div>
+            </div>
+            <button id="new-port-btn" style="display: none;">Új Portya Elérhető!</button>
+        </div>
+        <div id="side-panel">
+             <div id="fleet-status-desktop" class="side-box">
+                <h2>Flotta</h2><ul id="fleet-list-desktop"></ul>
+            </div>
+            <div id="leaderboard-desktop" class="side-box">
+                <h2>Bajnokok Csarnoka</h2>
+                <div id="leaderboard-list-desktop"></div>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL ABLAKOK -->
-    <div id="rules-modal" class="modal"><div class="modal-content"><h2>Részletes Játékszabályzat</h2>
+    <div id="rules-modal" class="modal"><div class="modal-content">
+        <h2>Részletes Játékszabályzat</h2>
         <div id="rules-content">
-            <h3>A Játék Célja</h3><p>A Globális Torpedó egy stratégiai játék, ahol a fő cél az ellenfél flottájának teljes megsemmisítése a játéktáblán. A játék igazi kihívása a hosszútávú pontgyűjtésben rejlik, amivel elnyerheted a "Nap Bajnoka" és a "Hét Bajnoka" címeket.</p>
-            <h3>A Bajnoki Rendszer</h3><ul><li><strong>Napi Pontgyűjtés:</strong> Minden pont, amit szerzel, hozzáadódik a napi összesített pontszámodhoz. A pontok minden nap magyar idő szerint 23:59-kor kerülnek összesítésre és nullázásra.</li><li><strong>Napi Jelentés:</strong> Másnap, az első belépéskor egy ablak fogad, amely összegzi az előző nap eredményeit, a győztest, és a heti bajnokság aktuális állását.</li><li><strong>A Nap Bajnoka:</strong> Aki a nap végén több pontot gyűjt, elnyeri a címet és kap egy győzelmi pontot a heti versenyben.</li><li><strong>A Hét Bajnoka:</strong> Aki a hét során több napi győzelmet szerez, elnyeri a dicső címet.</li></ul>
-            <h3>Játékmenet és Pontozás</h3><ul><li><strong>Találat és Prémium Lövés:</strong> Ha eltalálsz egy hajót, a mező pirosra vált. Jutalmul azonnal lőhetsz még egyet (Prémium Lövés). Addig folytathatod a lövést, amíg folyamatosan találsz.</li><li><strong>Kritikus Találat:</strong> Minden találatnál van egy kis esély, hogy <strong>+2 extra prémium lövést</strong> kapj!</li><li><strong>Hajó Elsüllyesztése:</strong> Egy hajó akkor süllyed el, ha minden részét eltaláltad. Ezért <strong>1 pont + a hajó méretének megfelelő pont</strong> jár. A süllyesztés után a lövés joga a tiéd marad.</li><li><strong>Veterán Hajó:</strong> A (<span class="veteran-star">★</span>) jelölt Veterán Hajó elsüllyesztéséért <strong>dupla pont</strong> jár!</li><li><strong>Szerencsevadász Bónusz:</strong> Ha egy speciális mező (pont, lőszer, segítség) felfedezése utáni első lövéseddel találsz, <strong>+2 bónusz pontot</strong> kapsz!</li></ul>
-            <h3>Speciális Mezők és Események</h3><ul><li><strong>Pont Bónusz (Sárga):</strong> +5 vagy +10 pontot ad azonnal a napi pontjaidhoz. Megtalálása után újra te jössz.</li><li><strong>Akna (Piros):</strong> Azonnal elveszi az összes prémium lövésedet, és pontlevonással jár. A büntetés fokozódik: az elsőért <strong>-3</strong>, a másodikért <strong>-4</strong>, a harmadikért pedig <strong>-5</strong> pont.</li><li><strong>Lőszer (Zöld):</strong> +10 vagy +20 lőszert ad. Megtalálása után újra te jössz.</li><li><strong>Segítség (Lila):</strong> Szónárt vagy Célzott Csapást ad, amit az adott körben használhatsz fel az "Arzenál" panelről. Megtalálása után újra te jössz.</li><li><strong>Veterán Flotta:</strong> Ritka esemény a kör elején, amikor az egész flotta veteránná válik, így minden hajó dupla pontot ér.</li><li><strong>Tengeri Vihar:</strong> Ritka esemény, amikor a pályán a szokásos 3 helyett 5 akna van.</li></ul>
-            <h3>Segítségek Használata</h3><ul><li><strong>Arzenál (körön belüli):</strong> A kör során talált segítségeket azonnal fel kell használnod.</li><li><strong>Tartalék Segítségek (24 órás):</strong> A Fődíj Játékban nyert segítségek a tábla alatt gyűlnek. Ezeket bármelyik körben aktiválhatod, amikor te következel. A nap végén (23:59) ezek a fel nem használt segítségek elvesznek.</li><li><strong>Szónár:</strong> Aktiválás után kattints egy mezőre. Egy 3x3-as területen ideiglenesen felfedi az elrejtett hajókat.</li><li><strong>Célzott Csapás:</strong> Aktiválás után a következő lövésed extra-precíz lesz. Ha eltalálsz egy hajót, ugyanúgy működik, mint egy normál találat. Ha mellémegy, megmondja, hogy a lövés sorában VAGY oszlopában van-e még felfedezetlen hajó.</li></ul>
-            <h3>A Kör Vége: Fődíj Játék</h3><p>Miután az utolsó hajó is elsüllyedt, minden játékos választ egyet a 15 lap közül, ami extra pontokat, pontbüntetéseket, vagy 24 órán át felhasználható segítségeket rejthet.</p>
+            <h3>A Játék Célja</h3><p>A Globális Torpedó egy stratégiai játék, ahol a fő cél az ellenfél flottájának teljes megsemmisítése. Az igazi kihívás az online bajnokságban rejlik, ahol napi és heti szinten is a legjobb kapitánnyá válhatsz.</p>
+            <h3>Játékmódok</h3><ul><li><strong>Online Játék:</strong> Hívd ki egy barátodat egy online csatára! A meccsen szerzett pontjaid beleszámítanak a napi és heti bajnokságba.</li><li><strong>Gyakorlás (Egyjátékos):</strong> Ismerkedj a hajókkal és a játékszabályokkal egy offline, egyedüli játékban. A cél a pálya felfedezése, nincs gép ellenfél. Az itt szerzett pontok nem számítanak bele a bajnokságba.</li></ul>
+            <h3>Online Bajnoki Rendszer</h3><ul><li><strong>Napi Pontgyűjtés:</strong> Online módban minden pont, amit szerzel egy meccs alatt, hozzáadódik a napi összesített pontszámodhoz.</li><li><strong>Napi Bajnok:</strong> Minden nap éjfélkor a rendszer összegzi az előző napot. Aki a legtöbb pontot gyűjtötte, kap 1 heti győzelmi pontot. Ezután a napi pontok lenullázódnak.</li><li><strong>Heti Bajnok:</strong> Aki a hét során a legtöbb napi győzelmet szerzi, az lesz a Hét Bajnoka! A heti győzelmek hétfőnként nullázódnak.</li></ul>
+            <h3>Játékmenet és Pontozás</h3><ul><li><strong>Találat és Prémium Lövés:</strong> Ha eltalálsz egy hajót, a mező pirosra vált. Jutalmul azonnal lőhetsz még egyet (Prémium Lövés). Addig folytathod a lövést, amíg folyamatosan találsz.</li><li><strong>Hajó Elsüllyesztése:</strong> Egy hajó akkor süllyed el, ha minden részét eltaláltad. Ezért <strong>1 pont + a hajó méretének megfelelő pont</strong> jár. A süllyesztés után a lövés joga a tiéd marad (további prémium lövés).</li><li><strong>Veterán Hajó:</strong> A (<span class="veteran-star">★</span>) jelölt Veterán Hajó elsüllyesztéséért <strong>dupla pont</strong> jár!</li></ul>
+            <h3>Speciális Mezők és Események</h3><ul><li><strong>Pont Bónusz (Sárga):</strong> +5 vagy +10 pontot ad azonnal a meccsen belüli pontjaidhoz. Megtalálása után újra te jössz.</li><li><strong>Akna (Piros):</strong> Azonnal elveszi az összes prémium lövésedet, és pontlevonással jár (-3, -4, majd -5 pont). A köröd véget ér.</li><li><strong>Lőszer (Zöld):</strong> +10 vagy +20 lőszert ad a saját készletedhez. Megtalálása után újra te jössz.</li><li><strong>Felderítés (Kék):</strong> Felfed egy garantáltan hajómentes sort vagy oszlopot. Megtalálása után újra te jössz.</li><li><strong>Pajzs (Fehér):</strong> Megvéd a következő aknától. Ha van pajzsod és aknára lépsz, nem veszítesz pontot, csak a pajzsod semmisül meg. Megtalálása után újra te jössz.</li><li><strong>Dupla Pontok (Arany):</strong> A következő 3 találatod dupla pontot ér. Megtalálása után újra te jössz.</li><li><strong>Kör Eleji Események:</strong> Ritkán előfordulhat "Veterán Flotta" (minden hajó dupla pontot ér) vagy "Tengeri Vihar" (több akna van a pályán).</li></ul>
+            <h3>A Játék Vége: Fődíj Játék</h3><p>Miután az utolsó hajó is elsüllyedt online módban, minden játékos választ egyet a 15 lap közül, ami extra pontokat, pontbüntetéseket, vagy akár pontcserét is rejthet. Ezek a jutalmak közvetlenül a bajnoki pontjaidat befolyásolják!</p>
         </div>
-        <div class="modal-buttons"><button id="btn-close-rules-modal" class="btn-confirm">Értem, Gyerünk Vissza!</button></div></div>
+        <div class="modal-buttons"><button id="close-rules-btn">Értem!</button></div></div>
     </div>
-    <div id="grand-prize-modal" class="modal"><div class="modal-content"><h2>FŐDÍJ JÁTÉK</h2><p id="grand-prize-status"></p><div id="grand-prize-ships"></div><div id="grand-prize-result"></div><div class="modal-buttons" style="margin-top: 15px;"><button id="btn-close-grand-prize" class="btn-confirm" style="display:none;">Tovább</button></div></div></div>
-    <div id="out-of-ammo-modal" class="modal"><div class="modal-content"><h2>VÉSZHELYZET!</h2><p>Kapitány, kifogytunk a lőszerből! Ennek a körnek vége.</p><div class="modal-buttons"><button id="btn-ammo-end" class="btn-cancel">Harci Álláspont Elhagyása</button></div></div></div>
-    <div id="summary-modal" class="modal"><div class="modal-content"><h2 id="summary-modal-title">Napi Jelentés</h2><div id="summary-content"></div><div class="modal-buttons"><button id="btn-close-summary-modal" class="btn-confirm">Rendben, Kapitány!</button></div></div></div>
-    <div id="confirm-modal" class="modal"><div class="modal-content"><h2 id="confirm-modal-title">Megerősítés</h2><p id="confirm-modal-text"></p><div class="modal-buttons"><button id="btn-confirm-yes" class="btn-confirm">Igen</button><button id="btn-confirm-no" class="btn-cancel">Nem</button></div></div></div>
-
+    
+    <div id="grand-prize-modal" class="modal"><div class="modal-content">
+        <h2>FŐDÍJ JÁTÉK</h2>
+        <p id="grand-prize-status"></p>
+        <div id="grand-prize-ships"></div>
+        <div id="grand-prize-result"></div>
+        <div id="new-port-info"></div>
+    </div></div>
+    
     <div id="svg-definitions" style="display: none;">
         <svg id="miss-svg" viewBox="0 0 100 100"><path d="M 20 50 Q 50 20 80 50 M 30 60 Q 50 40 70 60" stroke="#FFF" stroke-width="8" fill="none" /></svg>
         <svg id="hit-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="25" fill="#FFF" /><circle cx="50" cy="50" r="15" fill="var(--hit-color)" /></svg>
         <svg id="points-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A3,3 0 0,0 9,5A3,3 0 0,0 12,8A3,3 0 0,0 15,5A3,3 0 0,0 12,2M19,13C19,14.09 18.6,15.12 18,16H13V14H18C18,13.67 18.1,13.34 18.25,13.05L17,11.83C16.36,12.54 15.5,13 14.5,13H10.5C9.5,13 8.64,12.54 8,11.83L6.75,13.05C6.9,13.34 7,13.67 7,14H5A3,3 0 0,0 2,17A3,3 0 0,0 5,20H19A3,3 0 0,0 22,17A3,3 0 0,0 19,14V13Z" /></svg>
         <svg id="mine-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C10.68 2 9.4 2.84 8.8 4H5V6H7.08C6.93 6.32 6.8 6.66 6.7 7H4V9H6.08C5.46 10.59 5.46 12.41 6.08 14H4V16H6.7C6.8 16.34 6.93 16.68 7.08 17H5V19H8.8C9.4 20.16 10.68 21 12 21S14.6 20.16 15.2 19H19V17H16.92C17.07 16.68 17.2 16.34 17.3 16H20V14H17.92C18.54 12.41 18.54 10.59 17.92 9H20V7H17.3C17.2 6.66 17.07 6.32 16.92 6H19V4H15.2C14.6 2.84 13.32 2 12 2M12 4A2 2 0 0 1 14 6A2 2 0 0 1 12 8A2 2 0 0 1 10 6A2 2 0 0 1 12 4Z"/></svg>
-        <svg id="intel-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
         <svg id="ammo-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M7,2V4H8V18H7V22H9V21H11V20H13V19H14V18H15V17H16V4H17V2M9,4V16H10V15H11V14H12V5H11V4M13,6V13H14V12H15V5H13Z" /></svg>
-        <svg id="sonar-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M5.24,8.21C6.2,6.4 7.9,5.03 9.9,4.42C9.28,5.92 9,7.44 9,9C9,10.56 9.28,12.08 9.9,13.58C7.9,12.97 6.2,11.6 5.24,9.79C5.07,9.47 5,9.14 5,8.79C5,8.59 5.03,8.4 5.08,8.21M17,15.25A12.76,12.76 0 0,1 14.1,19.58C13.04,18.04 12.39,16.32 12.39,14.5C12.39,11.68 13.5,9.17 15.34,7.42C16.36,8.66 17,10.22 17,12C17,13.16 16.64,14.26 16.04,15.25Z"/></svg>
-        <svg id="strike-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M11,11V15H13V11H11M11,7V9H13V7H11Z"/></svg>
+        <svg id="intel-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/></svg>
+        <svg id="shield-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z" /></svg>
+        <svg id="double_points-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3,11H5.5L2,6L3.5,4.5L6,8V2H8V8L10.5,4.5L12,6L8.5,11H11V13H8.5L12,18L10.5,19.5L8,16V22H6V16L3.5,19.5L2,18L5.5,13H3V11M13,11H15.5L12,6L13.5,4.5L16,8V2H18V8L20.5,4.5L22,6L18.5,11H21V13H18.5L22,18L20.5,19.5L18,16V22H16V16L13.5,19.5L12,18L15.5,13H13V11Z"/></svg>
         <svg id="torpedo-svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12.01 1.5c-1.25 0-2.3.8-2.73 1.9H7.5c-.83 0-1.5.67-1.5 1.5v.5h-2c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h2v.5c0 .83.67 1.5 1.5 1.5h1.77c.43 1.1 1.48 1.9 2.73 1.9s2.3-.8 2.73-1.9h1.77c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-1.77c-.43-1.1-1.48-1.9-2.73-1.9zm-9.51 7V7c0-.55.45-1 1-1h2v4h-2c-.55 0-1-.45-1-1zm3.5-5.5h1.5v9h-1.5c-.28 0-.5-.22-.5-.5v-8c0-.28.22-.5.5-.5zm5.5 8c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5-6.5h1.5v5h-1.5c-.28 0-.5-.22-.5-.5v-4c0-.28.22-.5.5-.5zm4.5 5.5v2c0 .55-.45 1-1 1h-2v-4h2c.55 0 1 .45 1 1zM4 19h16v2H4z"/></svg>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
+    // A TELJES, VÉGLEGES, JAVÍTOTT JAVASCRIPT KÓD
+    const firebaseConfig = {
+      apiKey: "AIzaSyDvSh4iUvdLRwkhwlS98S8rWzC007TzhW4",
+      authDomain: "globalis-torpedo-jatekom.firebaseapp.com",
+      databaseURL: "https://globalis-torpedo-jatekom-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "globalis-torpedo-jatekom",
+      storageBucket: "globalis-torpedo-jatekom.appspot.com",
+      messagingSenderId: "1063594432336",
+      appId: "1:1063594432336:web:b4146dc9dc04e85523fe55"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const presenceRef = database.ref('.info/connected');
+    const playerStatsRef = database.ref('playerStats');
+    const systemRef = database.ref('system');
+
     document.addEventListener('DOMContentLoaded', () => {
-    const boardSize = 10;
-    const MAP_REFRESH_INTERVAL = 5 * 60 * 1000;
-    const SHIP_ROSTER = [ { name: "Parancsnoki Hajó", id: 'command', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:1,c:1},{r:1,c:2}] }, { name: "Nehéz Hordozó", id: 'heavycarrier', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:2,c:0},{r:2,c:1}] }, { name: "Dreadnought", id: 'dreadnought', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:1,c:3},{r:2,c:1}] }, { name: "Csillagromboló", id: 'stardestroyer', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1},{r:2,c:1},{r:3,c:1}] }, { name: "Hordozó", id: 'carrier', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2}] }, { name: "Szuper-Csatahajó", id: 'superbattleship', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:0,c:4}] }, { name: "Kriksz-kraksz", id: 'zigzag5', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:1},{r:1,c:2},{r:2,c:2}] }, { name: "Központi Erőd", id: 'cross', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:2,c:1}] }, { name: "Csatahajó", id: 'battleship', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2}] }, { name: "Nehézcirkáló", id: 'heavycruiser', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3}] }, { name: "L-alakú Romboló", id: 'l_destroyer', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1}] }, { name: "T-alakú Romboló", id: 't_destroyer', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1}] }, { name: "Kígyóhajó", id: 'snake', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1}] }, { name: "Kettős Fregatt", id: 'dual_frigate', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:2},{r:1,c:3}] }, { name: "Aszimmetrikus", id: 'asymmetric', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1}] }, { name: "Kalapács", id: 'hammer', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:1,c:1}] }, { name: "Pók", id: 'spider', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:1}] }, { name: "H-hajó", id: 'h_ship', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:1,c:1},{r:0,c:2},{r:1,c:2},{r:2,c:2}] }, { name: "Nagy Kígyó", id: 'big_snake', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1},{r:2,c:2},{r:3,c:2}] }, { name: "Cirkáló", id: 'cruiser', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0}] }, { name: "Tengeralattjáró", id: 'submarine', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1}] }, { name: "Fregatt", id: 'frigate', shape: [{r:0,c:0},{r:1,c:1},{r:2,c:2}] }, { name: "Sarokvédő", id: 'corner', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0}] }, { name: "Háromszög", id: 'tri', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2}] }, { name: "Villa", id: 'fork', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1}] }, { name: "Fél Kereszt", id: 'half_cross', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1}] }, { name: "C-hajó", id: 'c_ship', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:0,c:1},{r:2,c:1}] }, { name: "S-hajó", id: 's_ship', shape: [{r:0,c:1},{r:0,c:2},{r:1,c:1},{r:2,c:0},{r:2,c:1}] }, { name: "Romboló", id: 'destroyer', shape: [{r:0,c:0},{r:0,c:1}] }, { name: "Aknaszedő", id: 'minesweeper', shape: [{r:0,c:0},{r:1,c:1}] }, { name: "Járőrhajó", id: 'patrol', shape: [{r:0,c:0},{r:2,c:0}] }, { name: "Fürge Lopakodó", id: 'stealth', shape: [{r:0,c:0},{r:1,c:2}] }, { name: "Katamaran", id: 'catamaran', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:0},{r:1,c:2}] }, { name: "Fegyverplatform", id: 'gun_platform', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1},{r:2,c:0},{r:2,c:2}] }, { name: "Lépcsős Romboló", id: 'stair_destroyer', shape: [{r:0,c:0},{r:1,c:1},{r:2,c:2},{r:3,c:3}] }, { name: "U-hajó", id: 'u_boat', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:1,c:2},{r:0,c:2}] }, { name: "Dupla L", id: 'double_l', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1}] }, { name: "Dárda", id: 'spear', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:1}] }, { name: "Blokád", id: 'blockade', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0},{r:1,c:1}] }, { name: "Hosszú Z", id: 'long_z', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:1},{r:1,c:2}] }, { name: "Kompakt T", id: 'compact_t', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1}] }, { name: "Csipesz", id: 'pincer', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1}] }, { name: "Szöglet", id: 'angle', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1}] }, { name: "Oldalazó", id: 'sidewinder', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:2,c:0}] }, { name: "Dögcédula", id: 'dog_tag', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0}] }, { name: "Motorcsónak", id: 'speedboat', shape: [{r:0,c:0}] }, { name: "Felderítő drón", id: 'drone', shape: [{r:0,c:0}] } ];
-
-    const DOM = {
-        mainPanel: document.getElementById('main-panel'), sidePanel: document.getElementById('side-panel'),
-        gameBoard: document.getElementById('game-board'), boardWrapper: document.getElementById('board-wrapper'), messageOverlay: document.getElementById('board-message-overlay'),
-        shots: document.querySelector('#shots-stat p'), premium: document.querySelector('#premium-stat p'), premiumStat: document.getElementById('premium-stat'), shipsLeft: document.querySelector('#ships-left-stat p'),
-        fleetStatus: document.getElementById('fleet-status'), fleetList: document.getElementById('fleet-list'), newGameBtn: document.getElementById('new-map-button'), waitingPanel: document.getElementById('waiting-panel'),
-        waitingTime: document.getElementById('waiting-time'), nextRoundInfo: document.getElementById('next-round-info'), liveTimeWaiting: document.getElementById('live-time-waiting'),
-        renameBtn: document.getElementById('rename-players-btn'), p1Info: document.getElementById('player1-info'), p2Info: document.getElementById('player2-info'),
-        grandPrizeModal: document.getElementById('grand-prize-modal'), outOfAmmoModal: document.getElementById('out-of-ammo-modal'), summaryModal: document.getElementById('summary-modal'), rulesModal: document.getElementById('rules-modal'), confirmModal: document.getElementById('confirm-modal'),
-        p1DailyScore: document.getElementById('p1-daily-score'), p2DailyScore: document.getElementById('p2-daily-score'), p1WeeklyWins: document.getElementById('p1-weekly-wins'), p2WeeklyWins: document.getElementById('p2-weekly-wins'), lastWeekChampion: document.getElementById('last-week-champion-name'),
-        p1NameDaily: document.getElementById('p1-leaderboard-name-daily'), p2NameDaily: document.getElementById('p2-leaderboard-name-daily'), p1NameWeekly: document.getElementById('p1-leaderboard-name-weekly'), p2NameWeekly: document.getElementById('p2-leaderboard-name-weekly'),
-        openRulesBtn: document.getElementById('open-rules-modal-btn'), closeRulesBtn: document.getElementById('btn-close-rules-modal'), btnAmmoEnd: document.getElementById('btn-ammo-end'), btnCloseSummary: document.getElementById('btn-close-summary-modal'),
-        useSonarBtn: document.getElementById('use-sonar'), useStrikeBtn: document.getElementById('use-strike'), turnIndicatorBar: document.getElementById('turn-indicator-bar'), aidsContainer: document.getElementById('aids-container'),
-        aidItemsStored: document.getElementById('aid-items-stored'), p1LeaderboardDaily: document.getElementById('p1-leaderboard-daily'), p2LeaderboardDaily: document.getElementById('p2-leaderboard-daily'),
-        p1LeaderboardWeekly: document.getElementById('p1-leaderboard-weekly'), p2LeaderboardWeekly: document.getElementById('p2-leaderboard-weekly'),
-        icons: { miss: document.getElementById('miss-svg'), hit: document.getElementById('hit-svg'), torpedo: document.getElementById('torpedo-svg'), points: document.getElementById('points-svg'), mine: document.getElementById('mine-svg'), intel: document.getElementById('intel-svg'), ammo: document.getElementById('ammo-svg'), sonar: document.getElementById('sonar-svg'), strike: document.getElementById('strike-svg') }
-    };
-
-    let boardState, ships, shots, premiumShots, gameOver, currentMapSeed, seededRandom, messageTimeout, minesFoundThisRound, roundModifier, foundSpecialLastTurn;
-    let gameInProgress = false, sonarActive = false, strikeActive = false;
-    let currentPlayer = 1, lockedPlayer = 0;
-    let roundSonarCharges = 0, roundStrikeCharges = 0;
-    let championshipState = { player1Name: "Játékos 1", player2Name: "Játékos 2", p1DailyScore: 0, p2DailyScore: 0, p1WeeklyWins: 0, p2WeeklyWins: 0,
-        lastChampionCheck: new Date(0).toISOString(), currentWeekId: getWeekId(new Date()), lastWeeksChampion: "-", lastLoginDate: getDayId(new Date(0)),
-        p1LastDayScore: 0, p2LastDayScore: 0, storedAids: { sonar: 0, strike: 0 }
-    };
-
-    const mulberry32 = (a) => () => { let t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-
-    function saveState() { localStorage.setItem('globalTorpedoChampionship', JSON.stringify(championshipState)); }
-    function loadState() {
-        const savedChampionship = localStorage.getItem('globalTorpedoChampionship');
-        if (savedChampionship) { const loaded = JSON.parse(savedChampionship); championshipState = { ...championshipState, ...loaded }; }
-        handleDailyReset(); renderLeaderboard(); renderLeaderboardNames(); renderStoredAids();
-    }
-
-    function getDayId(date) { const d = new Date(date); d.setHours(d.getHours()); return d.toISOString().slice(0, 10); }
-    function getWeekId(date) { const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7); return d.getUTCFullYear() + '-W' + weekNo; }
-
-    function handleDailyReset() {
-        const now = new Date();
-        const todayId = getDayId(now);
-        const lastCheckId = getDayId(new Date(championshipState.lastChampionCheck));
-
-        if (todayId !== lastCheckId) {
-            let dailyWinnerName = "Döntetlen"; let dailyWinnerScore = championshipState.p1DailyScore;
-            if (championshipState.p1DailyScore > championshipState.p2DailyScore) { championshipState.p1WeeklyWins++; dailyWinnerName = championshipState.player1Name; }
-            else if (championshipState.p2DailyScore > championshipState.p1DailyScore) { championshipState.p2WeeklyWins++; dailyWinnerName = championshipState.player2Name; dailyWinnerScore = championshipState.p2DailyScore; }
-
-            championshipState.p1LastDayScore = championshipState.p1DailyScore; championshipState.p2LastDayScore = championshipState.p2DailyScore;
-
-            if (todayId !== championshipState.lastLoginDate) { showSummaryModal(dailyWinnerName, dailyWinnerScore); championshipState.lastLoginDate = todayId; }
-
-            championshipState.p1DailyScore = 0; championshipState.p2DailyScore = 0;
-            championshipState.storedAids = { sonar: 0, strike: 0 };
-        }
-
-        const currentWeekId = getWeekId(now);
-        if (championshipState.currentWeekId !== currentWeekId) {
-            let weeklyWinnerName = "-";
-            if (championshipState.p1WeeklyWins > championshipState.p2WeeklyWins) weeklyWinnerName = championshipState.player1Name;
-            else if (championshipState.p2WeeklyWins > championshipState.p1WeeklyWins) weeklyWinnerName = championshipState.player2Name;
-            else if (championshipState.p1WeeklyWins > 0) weeklyWinnerName = "Döntetlen";
-            championshipState.lastWeeksChampion = weeklyWinnerName;
-            championshipState.p1WeeklyWins = 0; championshipState.p2WeeklyWins = 0; championshipState.currentWeekId = currentWeekId;
-        }
-        championshipState.lastChampionCheck = now.toISOString(); saveState();
-    }
-
-    function showSummaryModal(winner, score) {
-        const contentEl = document.getElementById('summary-content');
-        contentEl.innerHTML = `<h3>Tegnapi Nap Eredményei</h3><p><strong>A nap győztese:</strong> <span style="color: var(--premium-glow);">${winner}</span> (${score} pont)</p><p><strong>${championshipState.player1Name} pontjai:</strong> ${championshipState.p1LastDayScore}</p><p><strong>${championshipState.player2Name} pontjai:</strong> ${championshipState.p2LastDayScore}</p><hr style="border-color: var(--cell-border); margin: 15px 0;"><h3>Heti Bajnokság Állása</h3><p><strong>${championshipState.player1Name} győzelmei:</strong> ${championshipState.p1WeeklyWins}</p><p><strong>${championshipState.player2Name} győzelmei:</strong> ${championshipState.p2WeeklyWins}</p>`;
-        DOM.summaryModal.classList.add('visible');
-    }
-
-    function initGame(forceNew = false) {
-        if (gameOver && !forceNew) { startNewRound(true); return; }
-        currentMapSeed = Math.floor(Date.now() / MAP_REFRESH_INTERVAL);
-        seededRandom = mulberry32(currentMapSeed); shots = 60; premiumShots = 0; gameOver = false; gameInProgress = true;
-        currentPlayer = 1; lockedPlayer = 0; minesFoundThisRound = 0; foundSpecialLastTurn = false;
-        roundSonarCharges = 0; roundStrikeCharges = 0;
-
-        boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(null).map(() => ({ shipId: null, special: null, state: 'empty' })));
-        const modRoll = seededRandom();
-        if (modRoll < 0.15) { roundModifier = 'veteran_fleet'; }
-        else if (modRoll < 0.30) { roundModifier = 'storm'; }
-        else { roundModifier = 'normal'; }
-        displayMessage("Kezdődjön a csata!", 3000, () => {
-            if(roundModifier === 'veteran_fleet') displayMessage('VETERÁN FLOTTA!', 3000);
-            if(roundModifier === 'storm') displayMessage('TENGERI VIHAR!', 3000);
-        });
-        DOM.newGameBtn.style.display = 'none'; DOM.waitingPanel.style.display = 'none'; DOM.turnIndicatorBar.style.display = 'block'; document.getElementById('main-panel').style.display = 'flex';
-        const currentFleetTypes = selectRandomFleet(); placeShips(currentFleetTypes); placeSpecials();
-        renderBoard(); renderFleetStatus(); updateStats(); updateArsenalUI(); renderStoredAids(); handleLayout();
-        updatePlayerUI();
-    }
-
-    function startNewRound(force = false) { if (force) { initGame(true); } else { showConfirmationModal("Biztosan új portyára indulsz? A jelenlegi köröd elveszik.", () => initGame(true)); } }
-
-    function selectRandomFleet() { const shuffledRoster = [...SHIP_ROSTER].sort(() => 0.5 - seededRandom()); const fleetSize = 7 + Math.floor(seededRandom() * 2); return shuffledRoster.slice(0, fleetSize); }
-    function showWaitingScreen() { gameInProgress = false; DOM.turnIndicatorBar.style.display = 'none'; document.getElementById('main-panel').style.display = 'none'; DOM.newGameBtn.style.display = 'none'; DOM.waitingPanel.style.display = 'block'; updateStats(); handleLayout(); }
-    function normalizeShape(shape) { const minR = Math.min(...shape.map(p => p.r)); const minC = Math.min(...shape.map(p => p.c)); return shape.map(p => ({ r: p.r - minR, c: p.c - minC })); }
-    function getShapeTransformations(shape) { const transformations = new Set(); let currentShape = shape; for (let i = 0; i < 4; i++) { currentShape = normalizeShape(currentShape.map(p => ({ r: -p.c, c: p.r }))); transformations.add(JSON.stringify(currentShape.sort((a,b) => a.r - b.r || a.c - b.c))); } currentShape = normalizeShape(shape.map(p => ({ r: p.r, c: -p.c }))); for (let i = 0; i < 4; i++) { currentShape = normalizeShape(currentShape.map(p => ({ r: -p.c, c: p.r }))); transformations.add(JSON.stringify(currentShape.sort((a,b) => a.r - b.r || a.c - b.c))); } return Array.from(transformations, s => JSON.parse(s)); }
-    function placeShips(fleetTypes) { ships = []; fleetTypes.forEach(shipType => { const allOrientations = getShapeTransformations(shipType.shape); let placed = false; let attempts = 0; while (!placed && attempts < 100) { attempts++; const orientation = allOrientations[Math.floor(seededRandom() * allOrientations.length)]; const shapeWidth = Math.max(...orientation.map(p => p.c)) + 1; const shapeHeight = Math.max(...orientation.map(p => p.r)) + 1; const sr = Math.floor(seededRandom() * (boardSize - shapeHeight + 1)); const sc = Math.floor(seededRandom() * (boardSize - shapeWidth + 1)); if (isValidPlacement(orientation, sr, sc)) { const coords = []; orientation.forEach(part => { const r = sr + part.r; const c = sc + part.c; boardState[r][c].shipId = shipType.id; coords.push({ row: r, col: c }); }); ships.push({ ...shipType, size: shipType.shape.length, coords, hits: 0, sunk: false, isVeteran: (roundModifier === 'veteran_fleet') }); placed = true; } } }); if (ships.length > 0 && roundModifier !== 'veteran_fleet') { const veteranIndex = Math.floor(seededRandom() * ships.length); ships[veteranIndex].isVeteran = true; } }
-    function isValidPlacement(shape, startRow, startCol) { for (const part of shape) { const r = startRow + part.r; const c = startCol + part.c; if (r < 0 || r >= boardSize || c < 0 || c >= boardSize) return false; for (let dr = -1; dr <= 1; dr++) { for (let dc = -1; dc <= 1; dc++) { const checkR = r + dr; const checkC = c + dc; if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize) { if (boardState[checkR][checkC].shipId !== null) { return false; } } } } } return true; }
-    function placeSpecials() { let specialTypes = [{type:'intel'}, {type:'ammo', value: 10}, {type:'ammo', value:20}, {type:'aid', kind:'sonar'}, {type:'aid', kind:'strike'}]; const numMines = roundModifier === 'storm' ? 5 : 3; for(let i=0; i<numMines; i++) specialTypes.push({type:'mine'}); const numPointTiles = seededRandom() > 0.3 ? Math.floor(seededRandom() * 3) + 1 : 0; for(let i=0; i<numPointTiles; i++) specialTypes.push({type:'points', value: seededRandom() > 0.5 ? 10 : 5}); specialTypes.forEach(special => { let placed = false; while (!placed) { const r = Math.floor(seededRandom() * boardSize); const c = Math.floor(seededRandom() * boardSize); if (boardState[r][c].shipId === null && boardState[r][c].special === null) { boardState[r][c].special = special; placed = true; } } }); }
-
-    function renderBoard() {
-        DOM.gameBoard.innerHTML = '';
-        const headerRow = DOM.gameBoard.insertRow();
-        headerRow.innerHTML = `<th></th>${Array.from({length: boardSize}, (_, i) => `<th>${String.fromCharCode(65 + i)}</th>`).join('')}`;
-        for (let i = 0; i < boardSize; i++) {
-            const rowEl = DOM.gameBoard.insertRow();
-            const th = document.createElement('th');
-            th.textContent = i + 1;
-            rowEl.appendChild(th);
-            for (let j = 0; j < boardSize; j++) {
-                const cellEl = rowEl.insertCell();
-                cellEl.dataset.row = i;
-                cellEl.dataset.col = j;
-                cellEl.addEventListener('click', handleCellClick);
-            }
-        }
-    }
-    function renderFleetStatus() { if(!ships) return; DOM.fleetList.innerHTML = ships.sort((a,b) => b.size - a.size).map(ship => `<li id="fleet-${ship.id}" class="${ship.sunk ? 'sunk' : ''} ${ship.hits > 0 && !ship.sunk ? 'found' : ''}"><div>${ship.isVeteran ? '<span class="veteran-star">★ </span>' : ''}${ship.name} (${ship.size})</div></li>`).join(''); }
-    function renderLeaderboard() { DOM.p1DailyScore.textContent = championshipState.p1DailyScore; DOM.p2DailyScore.textContent = championshipState.p2DailyScore; DOM.p1WeeklyWins.textContent = championshipState.p1WeeklyWins; DOM.p2WeeklyWins.textContent = championshipState.p2WeeklyWins; DOM.lastWeekChampion.textContent = championshipState.lastWeeksChampion; }
-    function renderLeaderboardNames() { DOM.p1NameDaily.textContent = championshipState.player1Name; DOM.p2NameDaily.textContent = championshipState.player2Name; DOM.p1NameWeekly.textContent = championshipState.player1Name; DOM.p2NameWeekly.textContent = championshipState.player2Name; }
-
-    function handleCellClick(e) {
-        if (gameOver || !gameInProgress) return;
-        const targetCell = e.target.closest('td');
-        if (!targetCell) return;
-        if (sonarActive) { executeSonar(parseInt(targetCell.dataset.row), parseInt(targetCell.dataset.col)); return; }
-        if (strikeActive) { executeStrike(parseInt(targetCell.dataset.row), parseInt(targetCell.dataset.col)); return; }
-        if (lockedPlayer !== 0 && lockedPlayer !== currentPlayer) return;
-        if (boardState[targetCell.dataset.row][targetCell.dataset.col].state !== 'empty') return;
-        if (shots <= 0 && premiumShots <= 0) { DOM.outOfAmmoModal.classList.add('visible'); return; }
-
-        const isPremiumShot = premiumShots > 0;
-        if (isPremiumShot) { premiumShots--; } else { shots--; }
-        targetCell.classList.add('shot');
-
-        const cellState = boardState[targetCell.dataset.row][targetCell.dataset.col];
-        if (cellState.shipId) { handleHit(targetCell); }
-        else {
-            foundSpecialLastTurn = false;
-            if (cellState.special) { handleSpecial(targetCell, cellState.special); }
-            else { handleMiss(targetCell); }
-        }
-        updateStats(); checkGameOver();
-    }
-
-    function handleHit(cellEl) {
-        const row = parseInt(cellEl.dataset.row), col = parseInt(cellEl.dataset.col);
-        const hitShip = ships.find(ship => ship.id === boardState[row][col].shipId);
-        if (!hitShip || boardState[row][col].state === 'hit') return;
-
-        boardState[row][col].state = 'hit';
-        cellEl.classList.add('hit'); cellEl.appendChild(DOM.icons.hit.cloneNode(true)).classList.add('icon');
-        if (hitShip.hits === 0 && !hitShip.sunk) document.getElementById(`fleet-${hitShip.id}`).classList.add('found');
-        hitShip.hits++;
-
-        let bonusMessage = "";
-        if (foundSpecialLastTurn) {
-            const bonusPoints = 2;
-            if (currentPlayer === 1) { championshipState.p1DailyScore += bonusPoints; } else { championshipState.p2DailyScore += bonusPoints; }
-            renderLeaderboard(); bonusMessage = `<br>Szerencsevadász: +${bonusPoints} Pont!`;
-        }
-        if (seededRandom() < 0.1) { premiumShots += 2; bonusMessage += `<br>Kritikus Találat: +2 Prémium!`; }
-        premiumShots++;
-
-        displayMessage(`TALÁLAT!${bonusMessage}`, 2000, () => { if (premiumShots > 0) displayMessage("PRÉMIUM LÖVÉS!", 1500); });
-
-        if (hitShip.hits === hitShip.size) handleSunkShip(hitShip);
-        foundSpecialLastTurn = false;
-    }
-
-    // ================== JAVÍTOTT FUNKCIÓ ==================
-    function handleSunkShip(sunkShip) {
-        sunkShip.sunk = true;
-        premiumShots++; // HIBAJAVÍTÁS: Prémium lövés hozzáadása a süllyesztésért a szabályzatnak megfelelően.
-
-        let pointsAwarded = 1 + sunkShip.size;
-        if(sunkShip.isVeteran) pointsAwarded *= 2;
-
-        if (currentPlayer === 1) { championshipState.p1DailyScore += pointsAwarded; } else { championshipState.p2DailyScore += pointsAwarded; }
-        renderLeaderboard();
-
-        // Üzenet megjelenítése a pontokról, majd utána a jutalom lövésről.
-        displayMessage(`${sunkShip.isVeteran ? 'VETERÁN ' : ''}${sunkShip.name} elsüllyedt!<br>+${pointsAwarded} pont`, 3000, () => {
-            displayMessage("JUTALOM LÖVÉS!", 1500);
-        });
-
-        sunkShip.coords.forEach(({ row, col }) => {
-            DOM.gameBoard.querySelector(`[data-row='${row}'][data-col='${col}']`).classList.add('sunk');
-        });
-
-        renderFleetStatus(); // A flotta teljes listáját újra kirajzolja a frissített 'sunk' állapot alapján.
-    }
-    // =======================================================
-
-
-    function handleSpecial(cellEl, special) {
-        boardState[cellEl.dataset.row][cellEl.dataset.col].state = 'special';
-        let givesExtraTurn = false;
-        switch (special.type) {
-            case 'mine':
-                cellEl.classList.add('mine'); cellEl.appendChild(DOM.icons.mine.cloneNode(true)).classList.add('icon');
-                premiumShots = 0; minesFoundThisRound++;
-                let penaltyPoints = [3, 4, 5][minesFoundThisRound - 1] || 5;
-                if (currentPlayer === 1) { championshipState.p1DailyScore -= penaltyPoints; } else { championshipState.p2DailyScore -= penaltyPoints; }
-                renderLeaderboard(); displayMessage(`BUMM! ${minesFoundThisRound}. Akna!<br>-${penaltyPoints} pont`, 2500);
-                switchPlayer(); break;
-            case 'intel':
-                cellEl.classList.add('intel'); cellEl.appendChild(DOM.icons.intel.cloneNode(true)).classList.add('icon');
-                displayMessage("JELZÉS ELFOGVA!", 2000, () => revealIntel()); switchPlayer(); break;
-            case 'points':
-                cellEl.classList.add('points'); cellEl.appendChild(DOM.icons.points.cloneNode(true)).classList.add('icon');
-                if (currentPlayer === 1) { championshipState.p1DailyScore += special.value; } else { championshipState.p2DailyScore += special.value; }
-                renderLeaderboard(); displayMessage(`Bónusz pont!<br>+${special.value}`, 2000); givesExtraTurn = true; break;
-            case 'ammo':
-                cellEl.classList.add('ammo'); cellEl.appendChild(DOM.icons.ammo.cloneNode(true)).classList.add('icon');
-                shots += special.value; displayMessage(`Lőszer!<br>+${special.value}`, 2000); givesExtraTurn = true; break;
-            case 'aid':
-                cellEl.classList.add('aid');
-                if(special.kind === 'sonar') { roundSonarCharges++; cellEl.appendChild(DOM.icons.sonar.cloneNode(true)).classList.add('icon'); displayMessage(`Szónár a fedélzeten!`, 2000); }
-                else { roundStrikeCharges++; cellEl.appendChild(DOM.icons.strike.cloneNode(true)).classList.add('icon'); displayMessage(`Célzott Csapás elérhető!`, 2000); }
-                updateArsenalUI(); givesExtraTurn = true; break;
-        }
-        if (givesExtraTurn) { foundSpecialLastTurn = true; premiumShots++; displayMessage("Jutalmul újra lőhetsz!", 1500); }
-    }
-    function revealIntel() { let revealed = false; let attempts = 0; while (!revealed && attempts < 20) { attempts++; if (seededRandom() > 0.5) { const r = Math.floor(seededRandom() * boardSize); if (!boardState[r].some(cell => cell.shipId !== null)) { for(let c=0; c<boardSize; c++) DOM.gameBoard.querySelector(`[data-row='${r}'][data-col='${c}']`).classList.add('intel-reveal-row'); displayMessage(`A(z) ${r+1}. sor tiszta!`, 2500); revealed = true; } } else { const c = Math.floor(seededRandom() * boardSize); let hasShip = false; for(let r=0; r<boardSize; r++) { if(boardState[r][c].shipId !== null) { hasShip = true; break; } } if (!hasShip) { for(let r=0; r<boardSize; r++) DOM.gameBoard.querySelector(`[data-row='${r}'][data-col='${c}']`).classList.add('intel-reveal-col'); displayMessage(`A(z) ${String.fromCharCode(65+c)} oszlop tiszta!`, 2500); revealed = true; } } } if (!revealed) displayMessage("A jel gyenge volt...", 2000); }
-    function handleMiss(cellEl) { cellEl.classList.add('miss'); cellEl.appendChild(DOM.icons.miss.cloneNode(true)).classList.add('icon'); displayMessage("MELLÉ!", 1500); switchPlayer(); }
-
-    function useAid(type, source) {
-        if (sonarActive || strikeActive) return;
-        let canUse = false;
-        if (source === 'round') {
-            if (type === 'sonar' && roundSonarCharges > 0) { roundSonarCharges--; canUse = true; updateArsenalUI(); }
-            else if (type === 'strike' && roundStrikeCharges > 0) { roundStrikeCharges--; canUse = true; updateArsenalUI(); }
-        } else if (source === 'stored') {
-            if (type === 'sonar' && championshipState.storedAids.sonar > 0) { championshipState.storedAids.sonar--; canUse = true; renderStoredAids(); }
-            else if (type === 'strike' && championshipState.storedAids.strike > 0) { championshipState.storedAids.strike--; canUse = true; renderStoredAids(); }
-        }
-        if (canUse) {
-            if (type === 'sonar') { sonarActive = true; DOM.boardWrapper.classList.add('sonar-active'); displayMessage("Válassz egy középpontot a szónárnak!", 3000); }
-            if (type === 'strike') { strikeActive = true; DOM.boardWrapper.classList.add('strike-active'); displayMessage("Válassz egy célpontot a csapásnak!", 3000); }
-        }
-    }
-
-    function executeSonar(row, col) { sonarActive = false; DOM.boardWrapper.classList.remove('sonar-active'); for (let r = row - 1; r <= row + 1; r++) { for (let c = col - 1; c <= col + 1; c++) { if (r >= 0 && r < boardSize && c >= 0 && c < boardSize) { const cell = DOM.gameBoard.querySelector(`[data-row='${r}'][data-col='${c}']`); if (boardState[r][c].shipId && boardState[r][c].state === 'empty') { cell.classList.add('sonar-reveal'); }}}} switchPlayer(); }
-    function executeStrike(row, col) { strikeActive = false; DOM.boardWrapper.classList.remove('strike-active'); const targetCell = DOM.gameBoard.querySelector(`[data-row='${row}'][data-col='${col}']`); if (boardState[row][col].state === 'empty') { premiumShots++; handleCellClick({ target: targetCell }); } else { switchPlayer(); } }
-
-    function checkGameOver() { if (!gameOver && ships.every(ship => ship.sunk)) { gameOver = true; premiumShots = 0; updateStats(); saveState(); renderLeaderboard(); const message = `Minden hajó elsüllyedt!<br>Következik a Fődíj Játék!`; displayMessage(message, 4000, () => startGrandPrizeGame()); } }
-
-    function startGrandPrizeGame() {
-        let grandPrizeTurn = 1; let firstResultText = "";
-        const container = document.getElementById('grand-prize-ships'); container.innerHTML = '';
-        for (let i = 0; i < 15; i++) { container.innerHTML += `<button class="ship-choice" data-index="${i}"><div class="flipper"><div class="front"><svg viewBox="0 0 24 24"><use href="#torpedo-svg"></use></svg></div><div class="back"></div></div></button>`; }
-
-        const statusEl = document.getElementById('grand-prize-status');
-        const updateStatus = () => { statusEl.textContent = `${championshipState[`player${grandPrizeTurn}Name`]} választ!`; };
-        updateStatus();
-        const shipChoices = document.querySelectorAll('.ship-choice'); const closeBtn = document.getElementById('btn-close-grand-prize'); document.getElementById('grand-prize-result').innerHTML = ""; closeBtn.style.display = 'none';
-
-        const prizePool = [ { type: 'points_double', label: 'NAPI PONT DUPLÁZÓ', cat: 'jackpot' }, { type: 'score_swap', label: 'PONTCSERE!', cat: 'jackpot' }, { type: 'points_add', value: 25, label: '+25 Pont', cat: 'good' }, { type: 'points_add', value: 15, label: '+15 Pont', cat: 'good' }, { type: 'points_add', value: 10, label: '+10 Pont', cat: 'good' }, { type: 'aid_add', kind: 'sonar', label: '+1 Szónár', cat: 'good' }, { type: 'aid_add', kind: 'strike', label: '+1 Célzott Csapás', cat: 'good' }, { type: 'points_halve', label: 'NAPI PONT FELEZŐ', cat: 'bad' }, { type: 'points_subtract', value: 15, label: '-15 Pont', cat: 'bad' }, { type: 'points_subtract', value: 10, label: '-10 Pont', cat: 'bad' }, { type: 'points_subtract', value: 5, label: '-5 Pont', cat: 'bad' }, { type: 'points_add', value: 5, label: '+5 Pont', cat: 'neutral' }, { type: 'aid_add', kind: 'sonar', label: '+1 Szónár', cat: 'neutral' }, { type: 'aid_add', kind: 'strike', label: '+1 Célzott Csapás', cat: 'neutral' } ];
-        for (let i = prizePool.length - 1; i > 0; i--) { const j = Math.floor(seededRandom() * (i + 1)); [prizePool[i], prizePool[j]] = [prizePool[j], prizePool[i]]; }
-
-        const revealChoice = (choiceIndex, playerNum) => {
-            let resultText = ""; const result = prizePool[choiceIndex];
-            if (result.type.includes('points') || result.type === 'score_swap') {
-                const activePlayer = `p${playerNum}DailyScore`;
-                if (result.type === 'points_add') { championshipState[activePlayer] += result.value; resultText = `+${result.value} napi pont!`; }
-                else if (result.type === 'points_subtract') { championshipState[activePlayer] -= result.value; resultText = `-${result.value} napi pont!`; }
-                else if (result.type === 'points_double') { championshipState[activePlayer] *= 2; resultText = `Mai pontok megduplázva!`; }
-                else if (result.type === 'points_halve') { championshipState[activePlayer] = Math.floor(championshipState[activePlayer] / 2); resultText = `Mai pontok megfelezve!`; }
-                else if (result.type === 'score_swap') { [championshipState.p1DailyScore, championshipState.p2DailyScore] = [championshipState.p2DailyScore, championshipState.p1DailyScore]; resultText = `Pontcsere a játékosok között!`; }
-            } else if (result.type === 'aid_add') {
-                championshipState.storedAids[result.kind]++; resultText = `+1 ${result.kind === 'sonar' ? 'Szónár' : 'Célzott Csapás'}!`;
-            }
-            return `${championshipState[`player${playerNum}Name`]}: ${resultText}`;
+        const boardSize = 10;
+        const SHIP_ROSTER = [ { name: "Parancsnoki Hajó", id: 'command', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:1,c:1},{r:1,c:2}] }, { name: "Nehéz Hordozó", id: 'heavycarrier', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:2,c:0},{r:2,c:1}] }, { name: "Dreadnought", id: 'dreadnought', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:1,c:3},{r:2,c:1}] }, { name: "Csillagromboló", id: 'stardestroyer', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1},{r:2,c:1},{r:3,c:1}] }, { name: "Hordozó", id: 'carrier', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2}] }, { name: "Szuper-Csatahajó", id: 'superbattleship', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3},{r:0,c:4}] }, { name: "Kriksz-kraksz", id: 'zigzag5', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:1},{r:1,c:2},{r:2,c:2}] }, { name: "Központi Erőd", id: 'cross', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:2,c:1}] }, { name: "Csatahajó", id: 'battleship', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:1,c:2}] }, { name: "Nehézcirkáló", id: 'heavycruiser', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3}] }, { name: "L-alakú Romboló", id: 'l_destroyer', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1}] }, { name: "T-alakú Romboló", id: 't_destroyer', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1}] }, { name: "Kígyóhajó", id: 'snake', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1}] }, { name: "Kettős Fregatt", id: 'dual_frigate', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:2},{r:1,c:3}] }, { name: "Aszimmetrikus", id: 'asymmetric', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1}] }, { name: "Kalapács", id: 'hammer', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:1,c:1}] }, { name: "Pók", id: 'spider', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:1}] }, { name: "H-hajó", id: 'h_ship', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:1,c:1},{r:0,c:2},{r:1,c:2},{r:2,c:2}] }, { name: "Nagy Kígyó", id: 'big_snake', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1},{r:2,c:2},{r:3,c:2}] }, { name: "Cirkáló", id: 'cruiser', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0}] }, { name: "Tengeralattjáró", id: 'submarine', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1}] }, { name: "Fregatt", id: 'frigate', shape: [{r:0,c:0},{r:1,c:1},{r:2,c:2}] }, { name: "Sarokvédő", id: 'corner', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0}] }, { name: "Háromszög", id: 'tri', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2}] }, { name: "Villa", id: 'fork', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1}] }, { name: "Fél Kereszt", id: 'half_cross', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1}] }, { name: "C-hajó", id: 'c_ship', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:0,c:1},{r:2,c:1}] }, { name: "S-hajó", id: 's_ship', shape: [{r:0,c:1},{r:0,c:2},{r:1,c:1},{r:2,c:0},{r:2,c:1}] }, { name: "Romboló", id: 'destroyer', shape: [{r:0,c:0},{r:0,c:1}] }, { name: "Aknaszedő", id: 'minesweeper', shape: [{r:0,c:0},{r:1,c:1}] }, { name: "Járőrhajó", id: 'patrol', shape: [{r:0,c:0},{r:2,c:0}] }, { name: "Fürge Lopakodó", id: 'stealth', shape: [{r:0,c:0},{r:1,c:2}] }, { name: "Katamaran", id: 'catamaran', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:0},{r:1,c:2}] }, { name: "Fegyverplatform", id: 'gun_platform', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1},{r:2,c:0},{r:2,c:2}] }, { name: "Lépcsős Romboló", id: 'stair_destroyer', shape: [{r:0,c:0},{r:1,c:1},{r:2,c:2},{r:3,c:3}] }, { name: "U-hajó", id: 'u_boat', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:1,c:2},{r:0,c:2}] }, { name: "Dupla L", id: 'double_l', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1}] }, { name: "Dárda", id: 'spear', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:1}] }, { name: "Blokád", id: 'blockade', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0},{r:1,c:1}] }, { name: "Hosszú Z", id: 'long_z', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:1},{r:1,c:2}] }, { name: "Kompakt T", id: 'compact_t', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1}] }, { name: "Csipesz", id: 'pincer', shape: [{r:0,c:0},{r:0,c:2},{r:1,c:1}] }, { name: "Szöglet", id: 'angle', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1}] }, { name: "Oldalazó", id: 'sidewinder', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:1},{r:2,c:0}] }, { name: "Dögcédula", id: 'dog_tag', shape: [{r:0,c:0},{r:0,c:1},{r:1,c:0}] }, { name: "Motorcsónak", id: 'speedboat', shape: [{r:0,c:0}] }, { name: "Felderítő drón", id: 'drone', shape: [{r:0,c:0}] }, { name: "Csillagfregatt", id: 'star_frigate', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:1}, {r:1,c:2}, {r:2,c:0}, {r:2,c:2}] }, { name: "Leviatán", id: 'leviathan', shape: [{r:0,c:0}, {r:0,c:1}, {r:0,c:2}, {r:0,c:3}, {r:1,c:0}, {r:2,c:0}, {r:1,c:3}, {r:2,c:3}] }, { name: "Kraken", id: 'kraken', shape: [{r:0,c:0}, {r:0,c:2}, {r:1,c:1}, {r:2,c:0}, {r:2,c:2}, {r:3,c:1}] }, { name: "Sikló", id: 'glider', shape: [{r:0,c:0}, {r:1,c:1}, {r:1,c:2}, {r:2,c:0}] }, { name: "Erődítmény", id: 'fortress', shape: [{r:0,c:0}, {r:0,c:1}, {r:0,c:2}, {r:1,c:0}, {r:1,c:2}, {r:2,c:0}, {r:2,c:1}, {r:2,c:2}] }, { name: "Kettős Penge", id: 'dual_blade', shape: [{r:0,c:0}, {r:0,c:4}, {r:1,c:1}, {r:1,c:3}, {r:2,c:2}] }, { name: "Pajzsgenerátor", id: 'shield_generator', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:2}, {r:2,c:0}, {r:2,c:2}] }, { name: "Nagy Villa", id: 'big_fork', shape: [{r:0,c:0}, {r:0,c:4}, {r:1,c:1}, {r:1,c:3}, {r:2,c:2}, {r:3,c:2}] }, { name: "Kvantumromboló", id: 'quantum_destroyer', shape: [{r:0,c:0}, {r:0,c:3}, {r:1,c:1}, {r:1,c:2}] }, { name: "Bárka", id: 'ark', shape: [{r:0,c:1}, {r:0,c:2}, {r:1,c:0}, {r:1,c:3}, {r:2,c:0}, {r:2,c:3}, {r:3,c:1}, {r:3,c:2}] }, { name: "Lopakodó Korvett", id: 'stealth_corvette', shape: [{r:0,c:0}, {r:2,c:1}, {r:0,c:2}] }, { name: "Tripla T", id: 'triple_t', shape: [{r:0,c:0}, {r:0,c:1}, {r:0,c:2}, {r:1,c:1}, {r:2,c:1}, {r:3,c:1}] }, { name: "Kalózjel", id: 'pirate_sign', shape: [{r:0,c:0}, {r:0,c:2}, {r:1,c:1}, {r:2,c:1}, {r:3,c:0}, {r:3,c:2}] }, { name: "Cápauszony", id: 'shark_fin', shape: [{r:0,c:2}, {r:1,c:1}, {r:2,c:0}, {r:2,c:1}, {r:2,c:2}] }, { name: "Csápos", id: 'tentacled', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:2}, {r:2,c:1}, {r:3,c:0}, {r:3,c:2}] }, { name: "Láncszem", id: 'chain_link', shape: [{r:0,c:0}, {r:0,c:1}, {r:1,c:1}, {r:1,c:2}, {r:2,c:2}, {r:2,c:3}] }, { name: "Gyűrű", id: 'ring', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:2}, {r:2,c:1}] }, { name: "Aszteroida", id: 'asteroid', shape: [{r:0,c:0}, {r:0,c:1}, {r:1,c:0}, {r:1,c:1}] }, { name: "Űrállomás", id: 'space_station', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:1}, {r:1,c:2}, {r:2,c:1}, {r:3,c:1}] }, { name: "Sárkányhajó", id: 'dragon_boat', shape: [{r:0,c:0}, {r:1,c:1}, {r:1,c:2}, {r:0,c:3}, {r:0,c:4}] }, { name: "Üstökös", id: 'comet', shape: [{r:0,c:0}, {r:1,c:1}, {r:2,c:2}, {r:3,c:3}] }, { name: "Főnix", id: 'phoenix', shape: [{r:0,c:2}, {r:1,c:0}, {r:1,c:1}, {r:1,c:3}, {r:1,c:4}, {r:2,c:2}] }, { name: "Góliát", id: 'goliath', shape: [{r:0,c:0}, {r:0,c:1}, {r:0,c:2}, {r:1,c:1}, {r:2,c:0}, {r:2,c:1}, {r:2,c:2}] }, { name: "Védvonal", id: 'defense_line', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:3,c:0},{r:4,c:0}] }, { name: "Rakétavető", id: 'rocket_launcher', shape: [{r:0,c:1}, {r:1,c:0}, {r:1,c:1}, {r:1,c:2}, {r:2,c:1}, {r:3,c:1}, {r:4,c:1}] }, { name: "Hangár", id: 'hangar', shape: [{r:0,c:0},{r:0,c:4},{r:1,c:0},{r:1,c:4},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:2,c:3},{r:2,c:4}] }, { name: "Mátrix", id: 'matrix', shape: [{r:0,c:0},{r:0,c:2},{r:0,c:4},{r:2,c:0},{r:2,c:2},{r:2,c:4},{r:4,c:0},{r:4,c:2},{r:4,c:4}] }, { name: "Szentély", id: 'shrine', shape: [{r:0,c:2}, {r:1,c:1}, {r:1,c:3}, {r:2,c:0}, {r:2,c:4}, {r:3,c:1}, {r:3,c:3}, {r:4,c:2}] }, { name: "Fúrótorony", id: 'drill_rig', shape: [{r:0,c:1},{r:1,c:1},{r:2,c:1},{r:3,c:0},{r:3,c:1},{r:3,c:2}] }, { name: "Kettős Villám", id: 'double_lightning', shape: [{r:0,c:0},{r:1,c:0},{r:1,c:1},{r:2,c:1},{r:0,c:3},{r:1,c:3},{r:1,c:4},{r:2,c:4}] }, { name: "Portál", id: 'portal', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:2},{r:2,c:0},{r:2,c:1},{r:2,c:2}] }, { name: "Csillagköd", id: 'nebula', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:3},{r:2,c:2},{r:3,c:0},{r:3,c:3}] }, { name: "Skorpió", id: 'scorpion', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:3,c:2}] }, { name: "Vaskapu", id: 'iron_gate', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:0,c:4},{r:1,c:4},{r:2,c:4},{r:1,c:1},{r:1,c:2},{r:1,c:3}] }, { name: "Medúza", id: 'jellyfish', shape: [{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:3},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:2,c:3},{r:3,c:1},{r:3,c:2}] }, { name: "Tőr", id: 'dagger', shape: [{r:0,c:1},{r:1,c:1},{r:2,c:1},{r:3,c:1},{r:4,c:1},{r:3,c:0},{r:3,c:2}] }, { name: "Rombusz", id: 'rhombus', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:1}] }, { name: "Üllő", id: 'anvil', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:1},{r:2,c:1}] }, { name: "Szatellit", id: 'satellite', shape: [{r:0,c:2},{r:1,c:2},{r:2,c:0},{r:2,c:1},{r:2,c:2},{r:2,c:3},{r:2,c:4}] }, { name: "Kígyófészek", id: 'snake_nest', shape: [{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:3},{r:2,c:0},{r:2,c:3},{r:3,c:1},{r:3,c:2}] }, { name: "Pöröly", id: 'maul', shape: [{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:2,c:1},{r:3,c:1}] }, { name: "Híd", id: 'bridge', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:0,c:4},{r:1,c:4},{r:2,c:4},{r:0,c:1},{r:0,c:2},{r:0,c:3}] }, { name: "Szellemhajó", id: 'ghost_ship', shape: [{r:0,c:0},{r:0,c:4},{r:2,c:2},{r:4,c:0},{r:4,c:4}] }, { name: "Kaptár", id: 'hive', shape: [{r:0,c:1},{r:1,c:0},{r:1,c:2},{r:2,c:0},{r:2,c:2},{r:3,c:1}] }, { name: "Karom", id: 'claw', shape: [{r:0,c:0},{r:1,c:1},{r:2,c:1},{r:3,c:1},{r:0,c:2}] }, { name: "Pajzs", id: 'shield_shape', shape: [{r:0,c:0},{r:1,c:0},{r:2,c:0},{r:0,c:2},{r:1,c:2},{r:2,c:2},{r:2,c:1}] }, { name: "Lándzsahegy", id: 'spearhead', shape: [{r:0,c:2},{r:1,c:1},{r:1,c:3},{r:2,c:0},{r:2,c:4}] }, { name: "Félhold", id: 'crescent', shape: [{r:0,c:1},{r:0,c:2},{r:1,c:0},{r:1,c:3},{r:2,c:1},{r:2,c:2}]} ];
+        
+        const DOM = {
+            gameLobby: document.getElementById('game-lobby'),
+            gameContainer: document.getElementById('game-container'),
+            createGameBtn: document.getElementById('create-game-btn'),
+            joinGameBtn: document.getElementById('join-game-btn'),
+            singlePlayerBtn: document.getElementById('single-player-btn'),
+            playerNameInput: document.getElementById('player-name-input'),
+            joinGameContainer: document.getElementById('join-game-container'),
+            gameCodeInput: document.getElementById('game-code-input'),
+            gameCodeContainer: document.getElementById('game-code-container'),
+            gameCodeDisplay: document.getElementById('game-code-display'),
+            copyCodeBtn: document.getElementById('copy-code-btn'),
+            gameBoard: document.getElementById('game-board'),
+            messageOverlay: document.getElementById('board-message-overlay'),
+            turnIndicator: document.getElementById('turn-indicator-bar'),
+            p1ScoreDisplay: document.getElementById('p1-score-display'),
+            p2ScoreDisplay: document.getElementById('p2-score-display'),
+            fleetList: document.getElementById('fleet-list'),
+            fleetListDesktop: document.getElementById('fleet-list-desktop'),
+            leaderboardListMobile: document.getElementById('leaderboard-list-mobile'),
+            leaderboardListDesktop: document.getElementById('leaderboard-list-desktop'),
+            shots: document.querySelector('#shots-stat p'),
+            premium: document.querySelector('#premium-stat p'),
+            shipsLeft: document.querySelector('#ships-left-stat p'),
+            premiumStat: document.getElementById('premium-stat'),
+            newPortBtn: document.getElementById('new-port-btn'),
+            rulesModal: document.getElementById('rules-modal'),
+            openRulesBtn: document.getElementById('open-rules-btn'),
+            closeRulesBtn: document.getElementById('close-rules-btn'),
+            grandPrizeModal: document.getElementById('grand-prize-modal'),
+            grandPrizeStatus: document.getElementById('grand-prize-status'),
+            grandPrizeShips: document.getElementById('grand-prize-ships'),
+            grandPrizeResult: document.getElementById('grand-prize-result'),
+            newPortInfo: document.getElementById('new-port-info'),
+            logo: document.getElementById('game-logo-svg'),
+            logoIngame: document.getElementById('game-logo-svg-ingame'),
+            icons: { miss: document.getElementById('miss-svg'), hit: document.getElementById('hit-svg'), points: document.getElementById('points-svg'), mine: document.getElementById('mine-svg'), ammo: document.getElementById('ammo-svg'), intel: document.getElementById('intel-svg'), shield: document.getElementById('shield-svg'), double_points: document.getElementById('double_points-svg'), torpedo: document.getElementById('torpedo-svg') }
         };
 
-        const choiceHandler = (e) => {
-            const btn = e.currentTarget; if(btn.disabled) return;
-            const choiceIndex = parseInt(btn.dataset.index);
-            const back = btn.querySelector('.back'); const prize = prizePool[choiceIndex]; back.className = `back ${prize.cat}`; back.textContent = prize.label;
-            btn.classList.add('is-flipped'); btn.disabled = true;
+        let localPlayerId = null, gameId = null, gameRef = null, myName = localStorage.getItem('torpedoPlayerName') || '',
+            messageTimeout, currentGameState = null, portyaNotifierInterval = null, presenceCon = null, isSinglePlayer = false,
+            sessionStartTime = null;
 
-            if (grandPrizeTurn === 1) { firstResultText = revealChoice(choiceIndex, 1); document.getElementById('grand-prize-result').textContent = firstResultText; grandPrizeTurn = 2; setTimeout(updateStatus, 1500); shipChoices.forEach(b => b.disabled = b.classList.contains('is-flipped')); }
-            else {
-                const secondResultText = revealChoice(choiceIndex, 2); document.getElementById('grand-prize-result').textContent = `${firstResultText} | ${secondResultText}`;
-                shipChoices.forEach(b => b.disabled = true);
-                let delay = 500; shipChoices.forEach((ship, index) => { if(ship.classList.contains('is-flipped')) return; setTimeout(() => { const back = ship.querySelector('.back'); const prize = prizePool[index]; back.className = `back ${prize.cat}`; back.textContent = prize.label; ship.classList.add('is-flipped'); }, delay); delay += 100; });
-                setTimeout(() => { closeBtn.style.display = 'block'; renderLeaderboard(); renderStoredAids(); saveState(); }, delay + 2000);
-            }
-        };
+        DOM.playerNameInput.value = myName;
 
-        shipChoices.forEach(btn => btn.addEventListener('click', choiceHandler));
-        closeBtn.onclick = () => { DOM.grandPrizeModal.classList.remove('visible'); initGame(true); };
-        DOM.grandPrizeModal.classList.add('visible');
-    }
-
-    function renderStoredAids() {
-        const { sonar, strike } = championshipState.storedAids;
-        DOM.aidItemsStored.innerHTML = '';
-        if (sonar > 0) DOM.aidItemsStored.innerHTML += `<button id="use-stored-sonar"><span>Szónár Bevetése</span> <span class="aid-count">${sonar}</span></button>`;
-        if (strike > 0) DOM.aidItemsStored.innerHTML += `<button id="use-stored-strike"><span>Célzott Csapás</span> <span class="aid-count">${strike}</span></button>`;
-
-        if (sonar > 0) document.getElementById('use-stored-sonar').addEventListener('click', () => useAid('sonar', 'stored'));
-        if (strike > 0) document.getElementById('use-stored-strike').addEventListener('click', () => useAid('strike', 'stored'));
-
-        DOM.aidsContainer.style.display = (sonar > 0 || strike > 0) ? 'block' : 'none';
-    }
-
-    function switchPlayer() { if (premiumShots > 0) { displayMessage("PRÉMIUM LÖVÉS!", 1500); return; } currentPlayer = (currentPlayer === 1) ? 2 : 1; updatePlayerUI(); }
-
-    function updatePlayerUI() {
-        DOM.p1Info.innerHTML = `${championshipState.player1Name} <span class="lock-icon"></span>`;
-        DOM.p2Info.innerHTML = `${championshipState.player2Name} <span class="lock-icon"></span>`;
-        DOM.p1Info.classList.toggle('active', currentPlayer === 1);
-        DOM.p2Info.classList.toggle('active', currentPlayer === 2);
-        DOM.turnIndicatorBar.textContent = `${championshipState[`player${currentPlayer}Name`]} következik...`;
-        DOM.p1LeaderboardDaily.classList.toggle('active-player-highlight', currentPlayer === 1);
-        DOM.p1LeaderboardWeekly.classList.toggle('active-player-highlight', currentPlayer === 1);
-        DOM.p2LeaderboardDaily.classList.toggle('active-player-highlight', currentPlayer === 2);
-        DOM.p2LeaderboardWeekly.classList.toggle('active-player-highlight', currentPlayer === 2);
-        renderLeaderboardNames();
-        updateLockUI();
-    }
-
-    function togglePlayerLock(playerNum) { lockedPlayer = (lockedPlayer === playerNum) ? 0 : playerNum; updateLockUI(); }
-    function updateLockUI() { DOM.p1Info.classList.remove('locked'); DOM.p2Info.classList.remove('locked'); document.querySelector('#player1-info .lock-icon').textContent = ''; document.querySelector('#player2-info .lock-icon').textContent = ''; DOM.boardWrapper.classList.remove('board-locked'); DOM.renameBtn.textContent = "Nevek Módosítása"; if (lockedPlayer === 1) { DOM.p1Info.classList.add('locked'); document.querySelector('#player1-info .lock-icon').textContent = '🔒'; DOM.renameBtn.textContent = "Vezérlés Feloldása"; } else if (lockedPlayer === 2) { DOM.p2Info.classList.add('locked'); document.querySelector('#player2-info .lock-icon').textContent = '🔒'; DOM.renameBtn.textContent = "Vezérlés Feloldása"; } if (lockedPlayer !== 0 && lockedPlayer !== currentPlayer) { DOM.boardWrapper.classList.add('board-locked'); } }
-    function updateStats() { const shipsRemaining = ships ? ships.filter(s => !s.sunk).length : 0; const shipsTotal = ships ? ships.length : 0; DOM.shots.textContent = shots; DOM.premium.textContent = premiumShots; DOM.shipsLeft.textContent = `${shipsRemaining}/${shipsTotal}`; DOM.premiumStat.classList.toggle('active', premiumShots > 0 && !gameOver); }
-    function updateArsenalUI() { DOM.useSonarBtn.textContent = `Szónár Bevetése (${roundSonarCharges})`; DOM.useSonarBtn.disabled = roundSonarCharges <= 0; DOM.useStrikeBtn.textContent = `Célzott Csapás (${roundStrikeCharges})`; DOM.useStrikeBtn.disabled = roundStrikeCharges <= 0; }
-    function displayMessage(text, duration = 2000, callback) { clearTimeout(messageTimeout); const overlay = DOM.messageOverlay; overlay.innerHTML = text; overlay.style.animation = 'none'; overlay.offsetHeight; overlay.style.animation = `fade-in-out-zoom ${duration / 1000}s ease-in-out forwards`; messageTimeout = setTimeout(() => { if (callback) callback(); }, duration); }
-
-    function handleLayout() {
-        const isMobile = window.innerWidth <= 900;
-        const fleetStatus = document.getElementById('fleet-status');
-        const aidsContainer = document.getElementById('aids-container');
-        if (isMobile) {
-            if (fleetStatus.parentElement !== DOM.mainPanel) {
-                DOM.mainPanel.insertBefore(fleetStatus, aidsContainer);
-            }
-        } else {
-            if (fleetStatus.parentElement !== DOM.sidePanel) {
-                DOM.sidePanel.insertBefore(fleetStatus, DOM.newGameBtn);
-            }
-        }
-    }
-
-    function showConfirmationModal(text, onConfirm) {
-        document.getElementById('confirm-modal-text').textContent = text;
-        DOM.confirmModal.classList.add('visible');
-        const confirmYes = document.getElementById('btn-confirm-yes');
-        const confirmNo = document.getElementById('btn-confirm-no');
-        const yesHandler = () => { cleanup(); onConfirm(); };
-        const noHandler = () => { cleanup(); };
-        const cleanup = () => { DOM.confirmModal.classList.remove('visible'); confirmYes.removeEventListener('click', yesHandler); confirmNo.removeEventListener('click', noHandler); };
-        confirmYes.addEventListener('click', yesHandler);
-        confirmNo.addEventListener('click', noHandler);
-    }
-
-    function tick() {
-        const now = new Date(); const millis = now.getTime();
-        DOM.liveTimeWaiting.textContent = now.toLocaleTimeString('hu-HU');
-        const nextMapTimestamp = (Math.floor(millis / MAP_REFRESH_INTERVAL) + 1) * MAP_REFRESH_INTERVAL;
-        const nextMapDate = new Date(nextMapTimestamp);
-        DOM.waitingTime.textContent = nextMapDate.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
-
-        const newSeed = Math.floor(millis / MAP_REFRESH_INTERVAL);
-        if (newSeed > currentMapSeed) {
-            if (gameInProgress) {
-                DOM.newGameBtn.style.display = 'block';
+        function initializeLobby() {
+            const params = new URLSearchParams(window.location.search);
+            const gameIdFromUrl = params.get('game');
+            
+            DOM.createGameBtn.style.display = 'none';
+            DOM.joinGameContainer.style.display = 'none';
+            DOM.gameCodeContainer.style.display = 'none';
+            const lobbyPrompt = DOM.gameLobby.querySelector('p');
+            const mainJoinBtn = DOM.joinGameContainer.querySelector('#join-game-btn');
+            
+            if (gameIdFromUrl) {
+                lobbyPrompt.textContent = 'Add meg a neved a csatlakozáshoz:';
+                mainJoinBtn.textContent = 'Csatlakozás a Játékhoz';
+                DOM.joinGameContainer.style.display = 'block';
+                DOM.gameCodeInput.style.display = 'none';
+                DOM.joinGameContainer.querySelector('p').style.display = 'none';
+                mainJoinBtn.onclick = () => {
+                    const name = DOM.playerNameInput.value.trim();
+                    if (!name) { alert('Kérlek, adj meg egy nevet!'); return; }
+                    myName = name;
+                    localStorage.setItem('torpedoPlayerName', myName);
+                    handleResets(myName);
+                    joinGame(gameIdFromUrl);
+                };
             } else {
-                initGame(true);
+                lobbyPrompt.textContent = 'Add meg a neved a bajnoksághoz:';
+                DOM.singlePlayerBtn.style.display = 'inline-block';
+                DOM.createGameBtn.style.display = 'inline-block';
+                DOM.joinGameContainer.style.display = 'block';
+                DOM.gameCodeInput.style.display = 'block';
+                DOM.joinGameContainer.querySelector('p').style.display = 'block';
+                mainJoinBtn.textContent = 'Csatlakozás';
+                mainJoinBtn.onclick = joinGameWithCode;
             }
         }
-    }
+        
+        initializeLobby();
+        
+        function renderLogo(svgElement) {
+            svgElement.innerHTML = `
+                <defs>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+                <circle cx="50" cy="50" r="45" stroke="var(--cell-border)" stroke-width="3" fill="none" />
+                <path d="M50 5 V20 M50 95 V80 M5 50 H20 M95 50 H80" stroke="var(--cell-border)" stroke-width="2" />
+                <path d="M10 80 Q 30 65, 50 80 T 90 80" stroke="var(--miss-color)" stroke-width="4" fill="none" />
+                <path d="M15 85 Q 35 70, 50 85 T 85 85" stroke="var(--cell-border)" stroke-width="3" fill="none" />
+                <g style="filter: url(#glow);">
+                    <path d="M15 47 L75 47 Q 85 50, 75 53 L15 53 Z" fill="var(--premium-glow)" />
+                    <path d="M15 50 L25 45 M15 50 L25 55" stroke="var(--premium-glow)" stroke-width="3" stroke-linecap="round" />
+                </g>
+            `;
+        }
+        renderLogo(DOM.logo);
+        renderLogo(DOM.logoIngame);
 
-    DOM.openRulesBtn.addEventListener('click', () => DOM.rulesModal.classList.add('visible'));
-    DOM.closeRulesBtn.addEventListener('click', () => DOM.rulesModal.classList.remove('visible'));
-    DOM.btnCloseSummary.addEventListener('click', () => DOM.summaryModal.classList.remove('visible'));
-    DOM.renameBtn.addEventListener('click', () => {
-        if (lockedPlayer !== 0) { togglePlayerLock(0); return; }
-        const newP1 = prompt("Add meg az 1. Játékos nevét:", championshipState.player1Name);
-        if (newP1 && newP1.trim() !== "") { championshipState.player1Name = newP1.trim(); }
-        const newP2 = prompt("Add meg a 2. Játékos nevét:", championshipState.player2Name);
-        if (newP2 && newP2.trim() !== "") { championshipState.player2Name = newP2.trim(); }
-        updatePlayerUI();
-        saveState();
+        DOM.createGameBtn.addEventListener('click', createNewGame);
+        DOM.singlePlayerBtn.addEventListener('click', startSinglePlayerGame);
+        DOM.openRulesBtn.addEventListener('click', () => DOM.rulesModal.classList.add('visible'));
+        DOM.closeRulesBtn.addEventListener('click', () => DOM.rulesModal.classList.remove('visible'));
+        DOM.newPortBtn.addEventListener('click', () => {
+            if (confirm('Biztosan elhagyod a jelenlegi csatát egy új portyáért?')) {
+                if(presenceCon) presenceCon.remove();
+                window.location.href = window.location.pathname;
+            }
+        });
+        DOM.copyCodeBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(DOM.gameCodeDisplay.value).then(() => {
+                DOM.copyCodeBtn.textContent = '✅';
+                setTimeout(() => { DOM.copyCodeBtn.textContent = '📋'; }, 2000);
+            });
+        });
+
+        function startSinglePlayerGame() {
+            isSinglePlayer = true;
+            localPlayerId = 1;
+            myName = DOM.playerNameInput.value.trim() || 'Játékos';
+            DOM.leaderboardListMobile.parentElement.style.display = 'none';
+            DOM.leaderboardListDesktop.parentElement.style.display = 'none';
+            currentGameState = generateInitialGameState(myName, Date.now());
+            currentGameState.status = 'active';
+            currentGameState.players.p2 = { name: '', score: 0, shots: 30, premiumShots: 0 };
+            updateUI(currentGameState);
+        }
+
+        async function generateUniqueGameCode() {
+            const gameCodesRef = database.ref('gameCodes');
+            let code;
+            let codeExists = true;
+            while (codeExists) {
+                code = Math.floor(1000 + Math.random() * 9000).toString();
+                const snapshot = await gameCodesRef.child(code).once('value');
+                codeExists = snapshot.exists();
+            }
+            return code;
+        }
+
+        async function createNewGame() {
+            const name = DOM.playerNameInput.value.trim();
+            if (!name) { alert('Kérlek, adj meg egy nevet!'); return; }
+            myName = name;
+            localStorage.setItem('torpedoPlayerName', myName);
+            await handleResets(myName);
+
+            DOM.createGameBtn.disabled = true;
+            DOM.createGameBtn.textContent = 'Generálás...';
+
+            const gameCode = await generateUniqueGameCode();
+            gameId = database.ref('games').push().key;
+            sessionStartTime = Date.now();
+            const mapSeed = Date.now();
+            const initialGameState = generateInitialGameState(myName, mapSeed);
+            initialGameState.sessionStartTime = sessionStartTime;
+            
+            gameRef = database.ref('games/' + gameId);
+            await gameRef.set(initialGameState);
+            await database.ref('gameCodes/' + gameCode).set(gameId);
+            
+            localPlayerId = 1;
+            
+            DOM.gameCodeDisplay.value = gameCode;
+            DOM.createGameBtn.style.display = 'none';
+            DOM.singlePlayerBtn.style.display = 'none';
+            DOM.joinGameContainer.style.display = 'none';
+            DOM.gameCodeContainer.style.display = 'block';
+            
+            listenToGameState();
+        }
+
+        async function joinGameWithCode() {
+            const name = DOM.playerNameInput.value.trim();
+            if (!name) { alert('Kérlek, adj meg egy nevet!'); return; }
+            
+            const code = DOM.gameCodeInput.value.trim();
+            if (!/^\d{4}$/.test(code)) {
+                alert('Kérlek, adj meg egy érvényes, 4-jegyű kódot!');
+                return;
+            }
+
+            DOM.joinGameBtn.disabled = true;
+            DOM.joinGameBtn.textContent = 'Csatlakozás...';
+
+            const gameCodeRef = database.ref('gameCodes/' + code);
+            const snapshot = await gameCodeRef.once('value');
+            const gameIdToJoin = snapshot.val();
+
+            if (gameIdToJoin) {
+                myName = name;
+                localStorage.setItem('torpedoPlayerName', myName);
+                await handleResets(myName);
+                gameId = gameIdToJoin;
+                await joinGame(gameIdToJoin);
+                gameCodeRef.remove();
+            } else {
+                alert("Hibás vagy lejárt kód. Kérj egy újat a barátodtól.");
+                DOM.joinGameBtn.disabled = false;
+                DOM.joinGameBtn.textContent = 'Csatlakozás';
+            }
+        }
+        
+        function joinGame(id) {
+            gameRef = database.ref('games/' + id);
+            gameRef.once('value', snapshot => {
+                const gs = snapshot.val();
+                if (gs && gs.status === 'waiting') {
+                    sessionStartTime = gs.sessionStartTime; 
+                    const updates = {};
+                    const p2Data = { name: myName, online: true, score: 0, effects: { shield: false, double_points: 0 }, shots: 30, premiumShots: 0 };
+                    updates['/players/p2'] = p2Data;
+                    updates['/status'] = 'active';
+                    gameRef.update(updates);
+                    localPlayerId = 2;
+                    listenToGameState();
+                } else {
+                    alert("Ez a játék már fut, nem létezik, vagy a kód lejárt!");
+                    window.location.search = ""; 
+                }
+            });
+        }
+
+        function setupPresence() {
+            if (isSinglePlayer || presenceCon) return;
+            presenceCon = gameRef.child('players/p' + localPlayerId + '/online');
+            presenceRef.on('value', snap => {
+                if (snap.val() === true) {
+                    presenceCon.onDisconnect().remove();
+                    presenceCon.set(true);
+                }
+            });
+        }
+        
+        function listenToGameState() {
+            if(gameRef) gameRef.off();
+            gameRef.on('value', snapshot => {
+                currentGameState = snapshot.val();
+                if (currentGameState) {
+                    updateUI(currentGameState);
+                    if (localPlayerId && !presenceCon) setupPresence();
+                }
+            });
+        }
+
+        playerStatsRef.on('value', snapshot => {
+            renderLeaderboard(snapshot.val());
+        });
+        
+        const mulberry32 = (a) => () => { let t = a += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+
+        function generateInitialGameState(p1Name, seed) {
+            const seededRandom = mulberry32(seed);
+            let boardState = Array(boardSize).fill(null).map(() => Array(boardSize).fill(0).map(()=>({ shipId: null, special: null, state: 'empty' })));
+            let ships = [];
+            const modRoll = seededRandom();
+            let roundModifier = 'normal';
+            if (modRoll < 0.1) { roundModifier = 'veteran_fleet'; }
+            else if (modRoll < 0.25) { roundModifier = 'storm'; }
+            const placeItem = (itemLogic) => { let placed = false, attempts = 0; while (!placed && attempts < 100) { placed = itemLogic(); attempts++;} };
+            const fleetSize = 7 + Math.floor(seededRandom() * 3);
+            [...SHIP_ROSTER].sort(() => 0.5 - seededRandom()).slice(0, fleetSize).forEach(shipType => {
+                placeItem(() => {
+                    const transforms = getShapeTransformations(shipType.shape);
+                    const orientation = transforms[Math.floor(seededRandom() * transforms.length)];
+                    const shapeWidth = Math.max(...orientation.map(p => p.c)) + 1, shapeHeight = Math.max(...orientation.map(p => p.r)) + 1;
+                    if (boardSize - shapeHeight < 0 || boardSize - shapeWidth < 0) return false;
+                    const sr = Math.floor(seededRandom() * (boardSize - shapeHeight + 1)), sc = Math.floor(seededRandom() * (boardSize - shapeWidth + 1));
+                    let canPlace = true;
+                    for (const part of orientation) {
+                        const r = sr + part.r, c = sc + part.c;
+                        for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+                            const checkR = r + dr, checkC = c + dc;
+                            if (checkR >= 0 && checkR < boardSize && checkC >= 0 && checkC < boardSize && boardState[checkR][checkC].shipId) canPlace = false;
+                        }
+                    }
+                    if (canPlace) {
+                        const coords = [];
+                        orientation.forEach(part => {
+                            const r = sr + part.r, c = sc + part.c;
+                            boardState[r][c].shipId = shipType.id; coords.push({ row: r, col: c });
+                        });
+                        ships.push({ ...shipType, size: shipType.shape.length, coords, hits: 0, sunk: false, isVeteran: (roundModifier === 'veteran_fleet') });
+                        return true;
+                    }
+                    return false;
+                });
+            });
+            if (ships.length > 0 && roundModifier !== 'veteran_fleet' && seededRandom() < 0.5) { ships[Math.floor(seededRandom() * ships.length)].isVeteran = true; }
+            let specialTypes = [{type:'ammo', value: 10}, {type:'ammo', value:20}, {type:'intel'}, {type:'shield'}, {type:'double_points'}];
+            const numMines = roundModifier === 'storm' ? 5 : 3;
+            for(let i=0; i<numMines; i++) specialTypes.push({type:'mine'});
+            const numPointTiles = seededRandom() > 0.3 ? Math.floor(seededRandom() * 3) + 1 : 0;
+            for(let i=0; i<numPointTiles; i++) specialTypes.push({type:'points', value: seededRandom() > 0.5 ? 10 : 5});
+            specialTypes.forEach(special => {
+                placeItem(() => {
+                    const r = Math.floor(seededRandom() * boardSize), c = Math.floor(seededRandom() * boardSize);
+                    if (!boardState[r][c].shipId && !boardState[r][c].special) { boardState[r][c].special = special; return true; }
+                    return false;
+                });
+            });
+            const p1Data = { name: p1Name, online: true, score: 0, effects: { shield: false, double_points: 0 }, shots: 30, premiumShots: 0 };
+            return { status: 'waiting', players: { p1: p1Data }, mapSeed: seed, currentPlayer: 1, boardState: boardState, ships: ships, minesFound: 0, roundModifier: roundModifier, winner: null, abandoned: null, grandPrize: { status: 'inactive' } };
+        }
+
+        function getShapeTransformations(shape) { const transformations = new Set(); let currentShape = shape; for (let i = 0; i < 4; i++) { currentShape = currentShape.map(p => ({ r: -p.c, c: p.r })); transformations.add(JSON.stringify(normalizeShape(currentShape))); } currentShape = shape.map(p => ({ r: p.r, c: -p.c })); for (let i = 0; i < 4; i++) { currentShape = currentShape.map(p => ({ r: -p.c, c: p.r })); transformations.add(JSON.stringify(normalizeShape(currentShape))); } return Array.from(transformations, s => JSON.parse(s)); }
+        function normalizeShape(shape) { const minR = Math.min(...shape.map(p => p.r)); const minC = Math.min(...shape.map(p => p.c)); return shape.map(p => ({ r: p.r - minR, c: p.c - minC })).sort((a,b) => a.r - b.r || a.c - b.c); }
+
+        function updateUI(gs) {
+            if (!gs) return;
+            if (gs.status === 'waiting' && localPlayerId === 1) {
+                DOM.gameLobby.style.display = 'block';
+                DOM.gameContainer.style.display = 'none';
+                return;
+            }
+
+            DOM.gameLobby.style.display = 'none';
+            DOM.gameContainer.style.display = 'grid';
+            
+            const localPlayerState = gs.players['p' + localPlayerId];
+
+            DOM.p1ScoreDisplay.innerHTML = `${gs.players.p1.name}: <span class="score-value">${gs.players.p1.score}</span>`;
+            DOM.p2ScoreDisplay.innerHTML = `${gs.players.p2?.name || (isSinglePlayer ? '' : 'Várakozás...')}: <span class="score-value">${gs.players.p2?.score || 0}</span>`;
+            if (isSinglePlayer) DOM.p2ScoreDisplay.style.display = 'none'; else DOM.p2ScoreDisplay.style.display = 'block';
+
+            DOM.shots.textContent = localPlayerState?.shots ?? (isSinglePlayer ? 30 : 0);
+            DOM.premium.textContent = localPlayerState?.premiumShots ?? 0;
+            DOM.premiumStat.classList.toggle('active', localPlayerState?.premiumShots > 0 && !gs.winner);
+            DOM.shipsLeft.textContent = gs.ships.filter(s => !s.sunk).length + "/" + gs.ships.length;
+
+            if (gs.abandoned) {
+                DOM.turnIndicator.textContent = `${gs.players['p'+gs.abandoned].name} elhagyta a csatát. Te nyertél!`;
+            } else if (gs.winner) {
+                DOM.turnIndicator.textContent = isSinglePlayer ? "Győzelem!" : `A győztes: ${gs.players['p' + gs.winner].name}!`;
+                if(portyaNotifierInterval) clearInterval(portyaNotifierInterval);
+            } else if (gs.grandPrize?.status !== 'inactive' && gs.grandPrize?.status !== undefined) {
+                 DOM.turnIndicator.textContent = 'FŐDÍJ JÁTÉK';
+            } else {
+                DOM.turnIndicator.textContent = isSinglePlayer ? "Te következel..." : `${gs.players['p' + gs.currentPlayer].name} következik...`;
+                if (!portyaNotifierInterval && gs.status === 'active' && !isSinglePlayer) {
+                    startPortNotifier();
+                }
+            }
+           
+            renderBoard(gs.boardState);
+            renderFleetStatus(gs.ships);
+
+            if (!isSinglePlayer && gs.status === 'active' && gs.players.p2 && (!gs.players.p1?.online || !gs.players.p2?.online)) {
+                const abandonedPlayer = !gs.players.p1?.online ? 1 : 2;
+                const winnerPlayer = abandonedPlayer === 1 ? 2 : 1;
+                if (!gs.abandoned && localPlayerId === winnerPlayer) {
+                    endGame(winnerPlayer, abandonedPlayer);
+                }
+            }
+
+            if (!isSinglePlayer && gs.grandPrize?.status !== 'inactive' && gs.grandPrize?.status !== undefined) {
+                DOM.grandPrizeModal.classList.add('visible');
+                const prizeState = gs.grandPrize;
+                let statusText = '';
+                if(prizeState.status === 'p1_choosing') statusText = `${gs.players.p1.name} választ!`;
+                else if(prizeState.status === 'p2_choosing') statusText = `${gs.players.p2.name} választ!`;
+                else if(prizeState.status === 'revealed') statusText = 'Az eredmények...';
+
+                DOM.grandPrizeStatus.textContent = statusText;
+                DOM.grandPrizeShips.innerHTML = prizeState.prizePool.map((prize, i) => {
+                    const p1choice = prizeState.choices?.p1?.index === i;
+                    const p2choice = prizeState.choices?.p2?.index === i;
+                    const isFlipped = p1choice || p2choice || prizeState.status === 'revealed';
+                    return `<button class="ship-choice ${isFlipped ? 'is-flipped' : ''}" data-index="${i}" ${prizeState.status !== 'p' + localPlayerId + '_choosing' || (localPlayerId === 2 && p1choice) ? 'disabled' : ''}><div class="flipper"><div class="front"><svg viewBox="0 0 24 24"><use href="#torpedo-svg"></use></svg></div><div class="back ${prize.cat}">${prize.label}</div></div></button>`;
+                }).join('');
+
+                document.querySelectorAll('.ship-choice').forEach(btn => {
+                    btn.onclick = (e) => handlePrizeChoice(parseInt(e.currentTarget.dataset.index));
+                });
+                
+                if (prizeState.status === 'revealed') {
+                    const p1result = prizeState.choices.p1.resultText || '';
+                    const p2result = prizeState.choices.p2.resultText || '';
+                    DOM.grandPrizeResult.innerHTML = `${p1result}<br>${p2result}`;
+                }
+            }
+        }
+
+        function renderLeaderboard(stats) {
+            if (!stats) return;
+            const dailyTop = Object.entries(stats).sort(([,a],[,b]) => b.dailyScore - a.dailyScore).slice(0, 5);
+            const weeklyTop = Object.entries(stats).sort(([,a],[,b]) => b.weeklyWins - a.weeklyWins).slice(0, 5);
+            let html = '<h3 class="leaderboard-subheader">NAPI PONTOK</h3>';
+            dailyTop.forEach(([name, data]) => { html += `<div class="leaderboard-row"><span>${name}</span><span class="leaderboard-value">${data.dailyScore}</span></div>`; });
+            html += '<h3 class="leaderboard-subheader">HETI GYŐZELMEK</h3>';
+            weeklyTop.forEach(([name, data]) => { html += `<div class="leaderboard-row"><span>${name}</span><span class="leaderboard-value">${data.weeklyWins}</span></div>`; });
+            DOM.leaderboardListMobile.innerHTML = html;
+            DOM.leaderboardListDesktop.innerHTML = html;
+        }
+        
+        let lastNotifiedMinute = -1;
+        function startPortNotifier() {
+            if (portyaNotifierInterval) clearInterval(portyaNotifierInterval);
+            portyaNotifierInterval = setInterval(() => {
+                const currentMinute = new Date().getMinutes();
+                if (currentMinute % 5 === 0 && currentMinute !== lastNotifiedMinute) {
+                    lastNotifiedMinute = currentMinute;
+                    DOM.newPortBtn.style.display = 'block';
+                    displayMessage("Új portya elérhető!", 3000);
+                }
+            }, 10000);
+        }
+
+        function renderBoard(boardState) {
+            DOM.gameBoard.innerHTML = '';
+            const headerRow = DOM.gameBoard.insertRow();
+            headerRow.innerHTML = `<th></th>${Array.from({length: boardSize}, (_, i) => `<th>${String.fromCharCode(65 + i)}</th>`).join('')}`;
+            for (let i = 0; i < boardSize; i++) {
+                const rowEl = DOM.gameBoard.insertRow();
+                const th = document.createElement('th');
+                th.textContent = i + 1;
+                rowEl.appendChild(th);
+                for (let j = 0; j < boardSize; j++) {
+                    const cellEl = rowEl.insertCell();
+                    cellEl.dataset.row = i; cellEl.dataset.col = j;
+                    const cellState = boardState[i][j];
+                    if (cellState.state !== 'empty') {
+                        cellEl.classList.add('shot');
+                        if (cellState.state === 'special' && cellState.special) {
+                            cellEl.classList.add(cellState.special.type);
+                            if (DOM.icons[cellState.special.type]) cellEl.appendChild(DOM.icons[cellState.special.type].cloneNode(true)).classList.add('icon');
+                        } else {
+                            cellEl.classList.add(cellState.state);
+                            if (DOM.icons[cellState.state]) cellEl.appendChild(DOM.icons[cellState.state].cloneNode(true)).classList.add('icon');
+                        }
+                    }
+                    if(cellState.shipId && getShipById(cellState.shipId)?.sunk) { cellEl.classList.add('sunk'); }
+                    cellEl.addEventListener('click', handleCellClick);
+                }
+            }
+        }
+        
+        function renderFleetStatus(ships) {
+            if (!ships) return;
+            const sortedShips = [...ships].sort((a, b) => b.size - a.size);
+            const generateListItem = (ship) => {
+                const li = document.createElement('li');
+                if (ship.sunk) {
+                    li.classList.add('sunk');
+                } else if (ship.hits > 0) {
+                    li.classList.add('found');
+                }
+                li.innerHTML = `${ship.isVeteran ? '<span class="veteran-star">★ </span>' : ''}${ship.name} (${ship.size})`;
+                return li;
+            };
+            DOM.fleetList.innerHTML = '';
+            DOM.fleetListDesktop.innerHTML = '';
+            sortedShips.forEach(ship => {
+                DOM.fleetList.appendChild(generateListItem(ship));
+                DOM.fleetListDesktop.appendChild(generateListItem(ship));
+            });
+        }
+        
+        function getShipById(shipId) {
+            return currentGameState?.ships?.find(s => s.id === shipId);
+        }
+
+        function handleCellClick(e) {
+            if (isSinglePlayer) {
+                handleSinglePlayerClick(e);
+                return;
+            }
+            if (currentGameState.winner || currentGameState.abandoned || currentGameState.currentPlayer !== localPlayerId || currentGameState.grandPrize?.status !== 'inactive') return;
+            
+            let gs = JSON.parse(JSON.stringify(currentGameState));
+            const currentPlayerState = gs.players['p' + gs.currentPlayer];
+            const targetCell = e.target.closest('td');
+            if (!targetCell) return;
+            
+            const row = parseInt(targetCell.dataset.row), col = parseInt(targetCell.dataset.col);
+            if (gs.boardState[row][col].state !== 'empty' || (currentPlayerState.shots <= 0 && currentPlayerState.premiumShots <= 0)) return;
+            
+            if (currentPlayerState.premiumShots > 0) {
+                currentPlayerState.premiumShots--;
+            } else {
+                currentPlayerState.shots--;
+            }
+
+            const cell = gs.boardState[row][col];
+            let switchPlayer = true;
+
+            if (cell.shipId) {
+                gs.boardState[row][col].state = 'hit';
+                const hitShip = gs.ships.find(s => s.id === cell.shipId);
+                hitShip.hits++;
+                currentPlayerState.premiumShots++;
+                switchPlayer = false;
+                
+                if (hitShip.hits === hitShip.size) {
+                    hitShip.sunk = true;
+                    currentPlayerState.premiumShots++;
+                    let pointsAwarded = 1 + hitShip.size;
+                    if (hitShip.isVeteran) pointsAwarded *= 2;
+                    if (currentPlayerState.effects.double_points > 0) {
+                        pointsAwarded *= 2;
+                        currentPlayerState.effects.double_points--;
+                    }
+                    currentPlayerState.score += pointsAwarded;
+                    displayMessage(`${hitShip.name} elsüllyedt!`, 2500);
+                } else {
+                    const remainingHits = hitShip.size - hitShip.hits;
+                    displayMessage(`${hitShip.name} (${hitShip.size}) eltalálva!<br>Még ${remainingHits} kell.`, 2500);
+                }
+            } else if (cell.special) {
+                gs.boardState[row][col].state = 'special';
+                const special = cell.special;
+                let givesExtraTurn = false;
+                switch (special.type) {
+                    case 'mine':
+                        if (currentPlayerState.effects.shield) {
+                            currentPlayerState.effects.shield = false;
+                            displayMessage("PAJZS AKTÍV! Megvédett az aknától!", 2000);
+                        } else {
+                            currentPlayerState.premiumShots = 0; 
+                            gs.minesFound++;
+                            const penalty = [3, 4, 5][gs.minesFound - 1] || 5;
+                            currentPlayerState.score -= penalty;
+                            displayMessage(`AKNA! -${penalty} pont!`, 2000);
+                        }
+                        break;
+                    case 'points': currentPlayerState.score += special.value; displayMessage(`+${special.value} pont!`, 2000); givesExtraTurn = true; break;
+                    case 'ammo': currentPlayerState.shots += special.value; displayMessage(`+${special.value} lőszer!`, 2000); givesExtraTurn = true; break;
+                    case 'intel': displayMessage(`JELZÉS ELFOGVA!`, 2000); givesExtraTurn = true; break;
+                    case 'shield': currentPlayerState.effects.shield = true; displayMessage(`PAJZS AKTIVÁLVA!`, 2000); givesExtraTurn = true; break;
+                    case 'double_points': currentPlayerState.effects.double_points = 3; displayMessage(`DUPLA PONTOK! (3 süllyesztés)`, 2000); givesExtraTurn = true; break;
+                }
+                if (givesExtraTurn) { currentPlayerState.premiumShots++; switchPlayer = false; }
+            } else {
+                gs.boardState[row][col].state = 'miss';
+                displayMessage("MELLÉ!", 1500);
+            }
+            
+            if (switchPlayer && currentPlayerState.premiumShots <= 0) {
+                gs.currentPlayer = gs.currentPlayer === 1 ? 2 : 1;
+            }
+
+            if (gs.ships.every(ship => ship.sunk)) {
+                gs.winner = gs.players.p1.score > gs.players.p2.score ? 1 : 2;
+                if(gs.players.p1.score === gs.players.p2.score) gs.winner = localPlayerId; // Az aktív játékos nyer döntetlen esetén
+                
+                gameRef.set(gs).then(() => endGame(gs.winner));
+                return;
+            }
+            gameRef.set(gs);
+        }
+        
+        function handleSinglePlayerClick(e){
+            let gs = currentGameState;
+            if (gs.winner) return;
+            let currentPlayerState = gs.players.p1;
+            const targetCell = e.target.closest('td');
+            if (!targetCell) return;
+            const row = parseInt(targetCell.dataset.row), col = parseInt(targetCell.dataset.col);
+            if (gs.boardState[row][col].state !== 'empty' || (currentPlayerState.shots <= 0 && currentPlayerState.premiumShots <= 0)) return;
+            
+            if (currentPlayerState.premiumShots > 0) {
+                currentPlayerState.premiumShots--;
+            } else {
+                currentPlayerState.shots--;
+            }
+            const cell = gs.boardState[row][col];
+            if (cell.shipId) {
+                gs.boardState[row][col].state = 'hit';
+                const hitShip = gs.ships.find(s => s.id === cell.shipId);
+                hitShip.hits++;
+                currentPlayerState.premiumShots++;
+                if (hitShip.hits === hitShip.size) {
+                    hitShip.sunk = true;
+                    currentPlayerState.premiumShots++;
+                    let pointsAwarded = 1 + hitShip.size;
+                    if (hitShip.isVeteran) pointsAwarded *= 2;
+                    currentPlayerState.score += pointsAwarded;
+                    displayMessage(`${hitShip.name} elsüllyedt!`, 2500);
+                } else {
+                    const remainingHits = hitShip.size - hitShip.hits;
+                    displayMessage(`${hitShip.name} (${hitShip.size}) eltalálva!<br>Még ${remainingHits} kell.`, 2500);
+                }
+            } else if (cell.special) {
+                gs.boardState[row][col].state = 'special';
+                const special = cell.special;
+                let givesExtraTurn = false;
+                switch(special.type) {
+                    case 'mine': displayMessage(`AKNA!`, 2000); currentPlayerState.premiumShots = 0; break;
+                    case 'points': currentPlayerState.score += special.value; displayMessage(`+${special.value} pont!`, 2000); givesExtraTurn = true; break;
+                    case 'ammo': currentPlayerState.shots += special.value; displayMessage(`+${special.value} lőszer!`, 2000); givesExtraTurn = true; break;
+                    case 'intel': displayMessage(`JELZÉS ELFOGVA!`, 2000); givesExtraTurn = true; break;
+                }
+                if (givesExtraTurn) currentPlayerState.premiumShots++;
+            } else {
+                gs.boardState[row][col].state = 'miss';
+                displayMessage("MELLÉ!", 1500);
+            }
+            if (gs.ships.every(ship => ship.sunk)) {
+                gs.winner = 1;
+                endGame(1);
+            }
+            updateUI(gs);
+        }
+
+        async function endGame(winner, abandonedPlayer = null) {
+            if (isSinglePlayer) {
+                displayMessage("Győzelem! Minden hajó elsüllyedt.", 5000);
+                DOM.newPortBtn.style.display = 'block';
+                return;
+            }
+            const snapshot = await gameRef.once('value');
+            const gs = snapshot.val();
+            if (!gs || (gs.grandPrize && gs.grandPrize.status !== 'inactive') || gs.status === 'finished') return;
+
+            await gameRef.update({ winner, abandoned: abandonedPlayer });
+            
+            const postUpdateSnapshot = await gameRef.once('value');
+            const finalGs = postUpdateSnapshot.val();
+            
+            const p1 = finalGs.players.p1, p2 = finalGs.players.p2;
+            if (p1?.name && p1.score > 0) updatePlayerStat(p1.name, 'dailyScore', p1.score);
+            if (p2?.name && p2.score > 0) updatePlayerStat(p2.name, 'dailyScore', p2.score);
+
+            if (!abandonedPlayer) {
+                startGrandPrizeGame();
+            } else { 
+                await gameRef.update({ status: 'finished' });
+                if(presenceCon) presenceCon.remove(); 
+                handleRematch();
+            }
+        }
+
+        function startGrandPrizeGame() {
+            const prizePool = [ { type: 'points_double', label: 'NAPI PONT DUPLÁZÓ', cat: 'jackpot' }, { type: 'score_swap', label: 'PONTCSERE!', cat: 'jackpot' }, { type: 'points_add', value: 50, label: '+50 Pont', cat: 'good' }, { type: 'points_add', value: 25, label: '+25 Pont', cat: 'good' }, { type: 'points_add', value: 15, label: '+15 Pont', cat: 'good' }, { type: 'points_add', value: 10, label: '+10 Pont', cat: 'neutral' }, { type: 'points_add', value: 5, label: '+5 Pont', cat: 'neutral' }, { type: 'points_subtract', value: 5, label: '-5 Pont', cat: 'neutral' }, { type: 'points_subtract', value: 10, label: '-10 Pont', cat: 'neutral' }, { type: 'points_subtract', value: 15, label: '-15 Pont', cat: 'bad' }, { type: 'points_subtract', value: 25, label: '-25 Pont', cat: 'bad' }, { type: 'match_points_lost', label: 'MECCS PONTOK NULLÁZÁSA', cat: 'bad' }, { type: 'points_halve', label: 'NAPI PONT FELEZŐ', cat: 'bad' }, { type: 'points_add', value: 50, label: '+50 Pont', cat: 'good' }, { type: 'points_add', value: 25, label: '+25 Pont', cat: 'good' }];
+            for (let i = prizePool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [prizePool[i], prizePool[j]] = [prizePool[j], prizePool[i]]; }
+            const updates = { '/grandPrize': { status: 'p1_choosing', prizePool, choices: { p1: { index: -1 }, p2: { index: -1 } } } };
+            gameRef.update(updates);
+        }
+
+        function handlePrizeChoice(index) {
+            const gs = currentGameState;
+            if (!gs || gs.grandPrize.status !== 'p' + localPlayerId + '_choosing' || gs.grandPrize.choices.p1.index === index) return;
+            const updates = {};
+            updates[`/grandPrize/choices/p${localPlayerId}/index`] = index;
+            if (localPlayerId === 1) {
+                updates['/grandPrize/status'] = 'p2_choosing';
+            } else {
+                updates['/grandPrize/status'] = 'applying';
+            }
+            gameRef.update(updates).then(() => {
+                if(localPlayerId === 2) applyPrizesAndReveal();
+            });
+        }
+        
+        async function applyPrizesAndReveal() {
+            const snapshot = await gameRef.once('value');
+            const gs = snapshot.val();
+            if(!gs.grandPrize || gs.grandPrize.status === 'revealed') return;
+            
+            const { p1, p2 } = gs.players;
+            const { prizePool, choices } = gs.grandPrize;
+            const p1_prize = prizePool[choices.p1.index];
+            const p2_prize = prizePool[choices.p2.index];
+            choices.p1.resultText = `${p1.name}: ${p1_prize.label}`;
+            choices.p2.resultText = `${p2.name}: ${p2_prize.label}`;
+            if(p1_prize.type === 'score_swap' || p2_prize.type === 'score_swap') {
+                const p1Stats = (await playerStatsRef.child(p1.name.replace(/[.#$[\]]/g, '_')).once('value')).val();
+                const p2Stats = (await playerStatsRef.child(p2.name.replace(/[.#$[\]]/g, '_')).once('value')).val();
+                updatePlayerStat(p1.name, 'dailyScore', p2Stats.dailyScore, 'set');
+                updatePlayerStat(p2.name, 'dailyScore', p1Stats.dailyScore, 'set');
+                choices.p1.resultText = `${p1.name}: PONTCSERE!`;
+                choices.p2.resultText = `${p2.name}: PONTCSERE!`;
+            } else {
+                [p1_prize, p2_prize].forEach((prize, i) => {
+                    const player = (i === 0) ? p1 : p2;
+                    if(prize.type === 'points_add') updatePlayerStat(player.name, 'dailyScore', prize.value);
+                    if(prize.type === 'points_subtract') updatePlayerStat(player.name, 'dailyScore', -prize.value);
+                    if(prize.type === 'points_double') updatePlayerStat(player.name, 'dailyScore', 0, 'double');
+                    if(prize.type === 'points_halve') updatePlayerStat(player.name, 'dailyScore', 0, 'halve');
+                    if(prize.type === 'match_points_lost') updatePlayerStat(player.name, 'dailyScore', -player.score);
+                });
+            }
+            const updates = { '/grandPrize/choices': choices, '/grandPrize/status': 'revealed', '/status': 'finished' };
+            await gameRef.update(updates);
+            if (presenceCon) presenceCon.remove();
+            handleRematch();
+        }
+
+        async function handleRematch() {
+            const ONE_HOUR_IN_MS = 3600000;
+            const finalGameStateSnapshot = await gameRef.once('value');
+            const finalGs = finalGameStateSnapshot.val();
+
+            if (!finalGs || !finalGs.sessionStartTime) { return; }
+
+            if (Date.now() - finalGs.sessionStartTime > ONE_HOUR_IN_MS) {
+                DOM.newPortInfo.innerHTML = 'Az egyórás játékidő lejárt.<br>Új kód generálása szükséges.<br>Visszatérés a lobbiba 10 másodperc múlva...';
+                setTimeout(() => {
+                    window.location.href = window.location.pathname;
+                }, 10000);
+                return;
+            }
+
+            DOM.newPortInfo.textContent = 'A következő kör előkészítése...';
+            
+            gameRef.child('rematchGameId').on('value', snapshot => {
+                const rematchId = snapshot.val();
+                if (rematchId) {
+                    gameRef.child('rematchGameId').off();
+                    DOM.newPortInfo.textContent = `Csatlakozás az új játékhoz...`;
+                    setTimeout(() => {
+                        window.location.href = `${window.location.pathname}?game=${rematchId}`;
+                    }, 2000);
+                }
+            });
+
+            if (localPlayerId === 1) {
+                setTimeout(async () => {
+                    const newGameId = database.ref('games').push().key;
+                    const newMapSeed = Date.now();
+                    const p1Name = finalGs.players.p1.name;
+                    const p2Name = finalGs.players.p2.name;
+                    let newGameState = generateInitialGameState(p1Name, newMapSeed);
+                    newGameState.sessionStartTime = finalGs.sessionStartTime;
+                    newGameState.players.p2 = { name: p2Name, online: false, score: 0, effects: { shield: false, double_points: 0 }, shots: 30, premiumShots: 0 };
+                    newGameState.status = 'waiting';
+
+                    await database.ref('games/' + newGameId).set(newGameState);
+                    await gameRef.child('rematchGameId').set(newGameId);
+                }, 4000);
+            }
+        }
+
+        function updatePlayerStat(playerName, key, value, operation = 'add') {
+            const safePlayerName = playerName.replace(/[.#$[\]]/g, '_');
+            playerStatsRef.child(safePlayerName + '/' + key).transaction(currentValue => {
+                const current = currentValue || 0;
+                if(operation === 'add') return current + value;
+                if(operation === 'set') return value;
+                if(operation === 'double') return current * 2;
+                if(operation === 'halve') return Math.floor(current / 2);
+                return current + value;
+            });
+        }
+        
+        async function handleResets(playerName) {
+            const today = new Date().toISOString().slice(0, 10);
+            const thisWeek = getWeekId(new Date());
+            const systemData = (await systemRef.once('value')).val() || {};
+            const lastDailyReset = systemData.lastDailyReset || '';
+            const lastWeeklyReset = systemData.lastWeeklyReset || '';
+            if (lastDailyReset !== today) {
+                const statsSnapshot = await playerStatsRef.once('value');
+                const stats = statsSnapshot.val();
+                if (stats) {
+                    let dailyWinner = { name: null, score: -1 }, second = { name: null, score: -1 };
+                    for (const name in stats) {
+                        if (stats[name].dailyScore > dailyWinner.score) {
+                            second = dailyWinner; dailyWinner = { name, score: stats[name].dailyScore };
+                        } else if (stats[name].dailyScore > second.score) {
+                            second = { name, score: stats[name].dailyScore };
+                        }
+                    }
+                    if (dailyWinner.name && dailyWinner.score > (second.score || -1)) {
+                        updatePlayerStat(dailyWinner.name, 'weeklyWins', 1);
+                    }
+                }
+                playerStatsRef.once('value', snapshot => { snapshot.forEach(child => { child.ref.child('dailyScore').set(0); }); });
+                systemRef.child('lastDailyReset').set(today);
+            }
+            if(lastWeeklyReset !== thisWeek) {
+                playerStatsRef.once('value', snapshot => { snapshot.forEach(child => { child.ref.child('weeklyWins').set(0); }); });
+                systemRef.child('lastWeeklyReset').set(thisWeek);
+            }
+            const safePlayerName = playerName.replace(/[.#$[\]]/g, '_');
+            playerStatsRef.child(safePlayerName).transaction(currentData => {
+                return currentData === null ? { dailyScore: 0, weeklyWins: 0 } : currentData;
+            });
+        }
+
+        function getWeekId(date) { const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7); return d.getUTCFullYear() + '-W' + weekNo; }
+        
+        function displayMessage(text, duration = 2000) {
+            clearTimeout(messageTimeout);
+            const overlay = DOM.messageOverlay;
+            overlay.innerHTML = text;
+            overlay.style.animation = 'none';
+            void overlay.offsetWidth;
+            overlay.style.animation = `fade-in-out-zoom ${duration / 1000}s ease-in-out forwards`;
+        }
     });
-    DOM.p1Info.addEventListener('click', () => togglePlayerLock(1));
-    DOM.p2Info.addEventListener('click', () => togglePlayerLock(2));
-    DOM.newGameBtn.addEventListener('click', () => startNewRound(false));
-    window.addEventListener('beforeunload', saveState);
-    DOM.btnAmmoEnd.addEventListener('click', () => { DOM.outOfAmmoModal.classList.remove('visible'); initGame(true); });
-    DOM.useSonarBtn.addEventListener('click', () => useAid('sonar', 'round'));
-    DOM.useStrikeBtn.addEventListener('click', () => useAid('strike', 'round'));
-    window.addEventListener('resize', handleLayout);
-
-    loadState();
-    setInterval(tick, 1000);
-    initGame();
-    handleLayout();
-});
 </script>
 </body>
 </html>
